@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import type { SocialCopy } from "@/lib/fallbacks";
+import { apiKeyHeaders } from "@/lib/user-keys";
 
 interface CopyPanelProps {
   /** Prefilled from the last AI diagram concept */
@@ -53,7 +54,7 @@ export default function CopyPanel({ seedConcept, script }: CopyPanelProps) {
     try {
       const res = await fetch("/api/copy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...apiKeyHeaders() },
         body: JSON.stringify({ concept: trimmed, script }),
       });
       if (!res.ok) throw new Error(`Request failed (${res.status})`);

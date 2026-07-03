@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { apiKeyHeaders } from "@/lib/user-keys";
+
 interface DiagramResult {
   mermaid: string;
   talkTrack: string[];
@@ -41,7 +43,7 @@ export default function AiPanel({
     try {
       const res = await fetch("/api/diagram", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...apiKeyHeaders() },
         body: JSON.stringify({ concept: trimmed }),
       });
       if (!res.ok) throw new Error(`Request failed (${res.status})`);

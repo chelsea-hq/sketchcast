@@ -6,6 +6,7 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import Board from "./Board";
 import RecordBar, { type RecState } from "./RecordBar";
+import SettingsModal from "./SettingsModal";
 import SidePanel from "./SidePanel";
 import TakeEditor from "./TakeEditor";
 import Teleprompter, { type PrompterSettings } from "./Teleprompter";
@@ -51,6 +52,7 @@ export default function Studio() {
   const [stage, setStage] = useState({ w: 960, h: 540 });
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingTake, setEditingTake] = useState<Take | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [prompter, setPrompter] = useState<PrompterSettings>({
     visible: false,
     playing: false,
@@ -312,7 +314,14 @@ export default function Studio() {
           Whiteboard + webcam + teleprompter, recorded right in your browser.
           Paste or drag images straight onto the board.
         </p>
-        <div className="ml-auto flex items-center gap-1.5 text-[11px]">
+        <div className="ml-auto flex items-center gap-3 text-[11px]">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
+          >
+            ⚙ Keys
+          </button>
           <span
             className={`h-2 w-2 rounded-full ${
               recState !== "idle"
@@ -447,6 +456,7 @@ export default function Studio() {
           onExported={handleEditedExport}
         />
       )}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

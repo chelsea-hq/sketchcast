@@ -35,11 +35,23 @@ function clientKey(request: Request): string {
   return forwarded?.split(",")[0]?.trim() || "local";
 }
 
+export interface GuardOptions {
+  /** Override the body cap, e.g. for audio uploads to /api/transcribe */
+  maxBodyBytes?: number;
+  /** Acceptable Content-Type prefixes; defaults to JSON only */
+  allowedContentTypes?: string[];
+}
+
 /**
  * Returns an error Response when the request should be rejected,
  * or null when the route may proceed.
  */
-export function guardApiRequest(request: Request): Response | null {
+export function guardApiRequest(
+  request: Request,
+  options: GuardOptions = {}
+): Response | null {
+  const maxBodyBytes = options.maxBodyBytes ?? MAX_BODY_BYTES;
+  const allowedContentTypes = options.allowedContentTypes ?? ["application/json"];
   // Same-origin check: browsers attach Origin to every POST. When it is
   // present it must match the host we are serving on. Non-browser clients
   // (curl, scripts) omit it and pass through; the global rate limit below
@@ -72,16 +84,16 @@ export function guardApiRequest(request: Request): Response | null {
   // Requiring the JSON content type forces cross-origin browser callers
   // into a CORS preflight, which fails because these routes never send
   // CORS headers. It also matches what the UI actually sends.
-  const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().includes("application/json")) {
+  const contentType = (request.headers.get("content-type") ?? "").toLowerCase();
+  if (!allowedContentTypes.some((t) => contentType.includes(t))) {
     return Response.json(
-      { error: "Content-Type must be application/json" },
+      { error: `Content-Type must be one of: ${allowedContentTypes.join(", ")}` },
       { status: 415 }
     );
   }
 
   const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (!Number.isFinite(contentLength) || contentLength > MAX_BODY_BYTES) {
+  if (!Number.isFinite(contentLength) || contentLength > maxBodyBytes) {
     return Response.json({ error: "Request body too large" }, { status: 413 });
   }
 

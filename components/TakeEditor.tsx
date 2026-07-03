@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { Take } from "./panels/TakesPanel";
+import { extractWavFromTake } from "@/lib/audio-extract";
+import { apiKeyHeaders } from "@/lib/user-keys";
 import type { FormatKey } from "@/lib/formats";
 import {
   buildSequence,
@@ -13,6 +15,15 @@ import {
   type CutRegion,
   type EditedExport,
 } from "@/lib/take-editor";
+
+interface TranscriptWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
+const FILLER_RE = /^(um+|uh+|uhm+|erm+|hmm+)[,.!?…]?$/i;
+const WORD_PAD = 0.04;
 
 interface TakeEditorProps {
   take: Take;
@@ -39,10 +50,106 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
   const [slideSeconds, setSlideSeconds] = useState(2.5);
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [words, setWords] = useState<TranscriptWord[] | null>(null);
+  const [loadingWords, setLoadingWords] = useState(false);
+  const [anchor, setAnchor] = useState<number | null>(null);
+  const [selRange, setSelRange] = useState<[number, number] | null>(null);
 
   const now = () => videoRef.current?.currentTime ?? 0;
   const duration = take.seconds;
   const outSeconds = sequenceDuration(buildSequence(duration, cuts, slides));
+
+  const isWordCut = (word: TranscriptWord) =>
+    cuts.some((c) => word.start >= c.start - 0.02 && word.end <= c.end + 0.02);
+
+  const loadTranscript = async () => {
+    setLoadingWords(true);
+    try {
+      const wav = await extractWavFromTake(take.url);
+      const res = await fetch("/api/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "audio/wav", ...apiKeyHeaders() },
+        body: wav,
+      });
+      if (res.status === 501) {
+        toast.info(
+          "Transcript editing needs a Deepgram key. Add DEEPGRAM_API_KEY to .env.local and restart."
+        );
+        return;
+      }
+      if (!res.ok) throw new Error(`Transcription failed (${res.status})`);
+      const data = (await res.json()) as { words: TranscriptWord[] };
+      if (data.words.length === 0) {
+        toast.info("No speech detected in this take.");
+        return;
+      }
+      setWords(data.words);
+      toast.success("Transcript ready. Click a word, then the last word to cut.");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        "Couldn't read audio from this take. Board-only takes have no audio track."
+      );
+    } finally {
+      setLoadingWords(false);
+    }
+  };
+
+  const clickWord = (index: number) => {
+    if (!words) return;
+    const video = videoRef.current;
+    if (video) video.currentTime = words[index].start;
+    if (anchor === null) {
+      setAnchor(index);
+      setSelRange(null);
+    } else {
+      setSelRange([Math.min(anchor, index), Math.max(anchor, index)]);
+      setAnchor(null);
+    }
+  };
+
+  const effectiveRange: [number, number] | null =
+    selRange ?? (anchor !== null ? [anchor, anchor] : null);
+
+  const cutSelectedWords = () => {
+    if (!words || !effectiveRange) return;
+    const [a, b] = effectiveRange;
+    const start = Math.max(0, words[a].start - WORD_PAD);
+    const end = Math.min(duration, words[b].end + WORD_PAD);
+    setCuts((prev) =>
+      [...prev, { id: `cut_${Date.now()}`, start, end }].sort(
+        (x, y) => x.start - y.start
+      )
+    );
+    setAnchor(null);
+    setSelRange(null);
+    toast.success(`Cut ${b - a + 1} word${b - a === 0 ? "" : "s"}`);
+  };
+
+  const removeFillers = () => {
+    if (!words) return;
+    const fillers = words.filter((w) => FILLER_RE.test(w.word) && !isWordCut(w));
+    if (fillers.length === 0) {
+      toast.info("No filler words found. Clean take!");
+      return;
+    }
+    setCuts((prev) =>
+      [
+        ...prev,
+        ...fillers.map((w, i) => ({
+          id: `cut_filler_${Date.now()}_${i}`,
+          start: Math.max(0, w.start - 0.03),
+          end: Math.min(duration, w.end + 0.03),
+        })),
+      ].sort((x, y) => x.start - y.start)
+    );
+    toast.success(`Removed ${fillers.length} filler word${fillers.length === 1 ? "" : "s"}`);
+  };
+
+  const isSelected = (index: number) =>
+    effectiveRange !== null &&
+    index >= effectiveRange[0] &&
+    index <= effectiveRange[1];
 
   const markCutIn = () => setCutIn(now());
 
@@ -120,6 +227,84 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
         </div>
 
         <video ref={videoRef} src={take.url} controls className="max-h-[38vh] w-full rounded-lg bg-black" />
+
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
+              Transcript:
+            </span>
+            {words === null ? (
+              <button
+                type="button"
+                onClick={loadTranscript}
+                disabled={loadingWords || exporting}
+                className={`${btn} bg-indigo-600 text-white hover:bg-indigo-500`}
+              >
+                {loadingWords ? "Transcribing…" : "Load transcript"}
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={removeFillers}
+                  disabled={exporting}
+                  className={`${btn} bg-amber-600/20 text-amber-300 hover:bg-amber-600/30`}
+                >
+                  Remove filler words
+                </button>
+                {effectiveRange && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={cutSelectedWords}
+                      disabled={exporting}
+                      className={`${btn} bg-amber-600 text-white hover:bg-amber-500`}
+                    >
+                      Cut selected
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnchor(null);
+                        setSelRange(null);
+                      }}
+                      disabled={exporting}
+                      className={`${btn} bg-zinc-800 text-zinc-400`}
+                    >
+                      Clear
+                    </button>
+                  </>
+                )}
+                <span className="text-[11px] text-zinc-500">
+                  Click the first and last word of a flub, then cut.
+                </span>
+              </>
+            )}
+          </div>
+          {words && (
+            <div className="max-h-32 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/60 p-2 leading-7">
+              {words.map((w, i) => (
+                <button
+                  key={`${i}_${w.start}`}
+                  type="button"
+                  onClick={() => clickWord(i)}
+                  disabled={exporting}
+                  className={`mr-0.5 rounded px-0.5 text-xs transition-colors ${
+                    isWordCut(w)
+                      ? "text-zinc-600 line-through"
+                      : isSelected(i)
+                        ? "bg-indigo-600 text-white"
+                        : FILLER_RE.test(w.word)
+                          ? "text-amber-300 hover:bg-zinc-800"
+                          : "text-zinc-300 hover:bg-zinc-800"
+                  }`}
+                >
+                  {w.word}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">

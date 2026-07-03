@@ -21,9 +21,9 @@ npm run dev
 
 Open http://localhost:3000, click "Start session · camera + mic", and record.
 
-## Claude API key (optional but recommended)
+## API keys (bring your own)
 
-Without a key the app uses offline generators. For tailored diagrams and copy, put your key in `.env.local`:
+Users paste their own keys via the **⚙ Keys** button in the studio header; keys are stored only in their browser. For your own machine you can also put keys in `.env.local` as a server-side default:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-…
@@ -31,6 +31,10 @@ SKETCHCAST_MODEL=claude-opus-4-8
 ```
 
 `SKETCHCAST_MODEL` accepts any Claude model id; drop it to `claude-haiku-4-5` for cheaper generations.
+
+## Deepgram key (optional, unlocks transcript editing)
+
+With `DEEPGRAM_API_KEY` set in `.env.local`, the take editor gains transcript editing: load a word-by-word transcript, click the first and last word of a flub to cut it, and remove filler words ("um", "uh") in one click. Costs about 2 cents per 5-minute video. Audio is extracted in the browser and sent to Deepgram only when you click "Load transcript"; without the key the manual cut buttons work as before.
 
 ## Notes
 

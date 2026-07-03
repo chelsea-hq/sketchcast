@@ -52,7 +52,9 @@ export async function POST(request: Request) {
   if (concept.length > 2000) concept = concept.slice(0, 2000);
 
   try {
-    const client = new Anthropic();
+    // Bring-your-own-key: a browser-supplied key wins over the server env
+    const userKey = request.headers.get("x-anthropic-key")?.trim();
+    const client = new Anthropic(userKey ? { apiKey: userKey } : {});
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 2048,
