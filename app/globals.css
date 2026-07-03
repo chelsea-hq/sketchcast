@@ -19,6 +19,43 @@ body {
   overscroll-behavior: none;
 }
 
+/* Landing hero mockup animation: diagram pieces pop in on a loop */
+@keyframes scPopA {
+  0%, 6% { opacity: 0; transform: scale(0.85) rotate(-1deg); }
+  11%, 90% { opacity: 1; transform: scale(1) rotate(-1deg); }
+  96%, 100% { opacity: 0; transform: scale(0.95) rotate(-1deg); }
+}
+@keyframes scPopB {
+  0%, 20% { opacity: 0; transform: scale(0.85) rotate(0.5deg); }
+  25%, 90% { opacity: 1; transform: scale(1) rotate(0.5deg); }
+  96%, 100% { opacity: 0; transform: scale(0.95) rotate(0.5deg); }
+}
+@keyframes scPopC {
+  0%, 34% { opacity: 0; transform: scale(0.85) rotate(-0.5deg); }
+  39%, 90% { opacity: 1; transform: scale(1) rotate(-0.5deg); }
+  96%, 100% { opacity: 0; transform: scale(0.95) rotate(-0.5deg); }
+}
+@keyframes scArrow1 {
+  0%, 14% { opacity: 0; }
+  19%, 90% { opacity: 1; }
+  96%, 100% { opacity: 0; }
+}
+@keyframes scArrow2 {
+  0%, 28% { opacity: 0; }
+  33%, 90% { opacity: 1; }
+  96%, 100% { opacity: 0; }
+}
+@keyframes scScroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+.sc-pop-a { animation: scPopA 9s ease-in-out infinite; }
+.sc-pop-b { animation: scPopB 9s ease-in-out infinite; }
+.sc-pop-c { animation: scPopC 9s ease-in-out infinite; }
+.sc-arrow-1 { animation: scArrow1 9s ease-in-out infinite; }
+.sc-arrow-2 { animation: scArrow2 9s ease-in-out infinite; }
+.sc-scroll { animation: scScroll 14s linear infinite; }
+
 /* Slim scrollbars for the studio panels */
 ::-webkit-scrollbar {
   width: 8px;
