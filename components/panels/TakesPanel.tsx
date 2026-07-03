@@ -12,9 +12,10 @@ export interface Take {
 interface TakesPanelProps {
   takes: Take[];
   onDelete: (id: string) => void;
+  onEdit: (take: Take) => void;
 }
 
-export default function TakesPanel({ takes, onDelete }: TakesPanelProps) {
+export default function TakesPanel({ takes, onDelete, onEdit }: TakesPanelProps) {
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
       {takes.length === 0 && (
@@ -41,6 +42,14 @@ export default function TakesPanel({ takes, onDelete }: TakesPanelProps) {
               >
                 Download
               </a>
+              <button
+                type="button"
+                onClick={() => onEdit(take)}
+                title="Cut flubs and insert action slides"
+                className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
+              >
+                Edit
+              </button>
               <button
                 type="button"
                 onClick={() => onDelete(take.id)}

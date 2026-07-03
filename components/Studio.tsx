@@ -7,14 +7,17 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import Board from "./Board";
 import RecordBar, { type RecState } from "./RecordBar";
 import SidePanel from "./SidePanel";
+import TakeEditor from "./TakeEditor";
 import Teleprompter, { type PrompterSettings } from "./Teleprompter";
 import WebcamBubble from "./WebcamBubble";
 import type { Take } from "./panels/TakesPanel";
 import {
+  addMermaidToTray,
   applyTemplateScene,
   captureTemplateScene,
   insertMermaidIntoScene,
 } from "@/lib/board-actions";
+import type { EditedExport } from "@/lib/take-editor";
 import {
   FORMATS,
   defaultWebcamLayout,
@@ -46,6 +49,8 @@ export default function Studio() {
   const [seedConcept, setSeedConcept] = useState("");
   const [templates, setTemplates] = useState<SketchTemplate[]>(() => listTemplates());
   const [stage, setStage] = useState({ w: 960, h: 540 });
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [editingTake, setEditingTake] = useState<Take | null>(null);
   const [prompter, setPrompter] = useState<PrompterSettings>({
     visible: false,
     playing: false,
@@ -216,6 +221,41 @@ export default function Studio() {
     [api]
   );
 
+  const saveToTray = useCallback(
+    async (mermaid: string, name: string) => {
+      if (!api) {
+        toast.error("The whiteboard is still loading…");
+        return false;
+      }
+      try {
+        await addMermaidToTray(api, mermaid, name);
+        return true;
+      } catch (error) {
+        console.error(error);
+        toast.error("Couldn't stage that diagram. Regenerate and try again.");
+        return false;
+      }
+    },
+    [api]
+  );
+
+  const handleEditedExport = (result: EditedExport) => {
+    const url = URL.createObjectURL(result.blob);
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+    const sourceFormat = editingTake?.format ?? format;
+    setTakes((prev) => [
+      {
+        id: `take_${Date.now()}`,
+        url,
+        filename: `sketchcast-${sourceFormat.replace(":", "x")}-edited-${stamp}.${result.extension}`,
+        sizeMB: result.blob.size / (1024 * 1024),
+        seconds: result.durationMs / 1000,
+        format: sourceFormat,
+      },
+      ...prev,
+    ]);
+  };
+
   const handleSaveTemplate = (name: string) => {
     if (!api) {
       toast.error("The whiteboard is still loading…");
@@ -258,6 +298,13 @@ export default function Studio() {
   return (
     <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100">
       <header className="flex items-center gap-3 border-b border-zinc-800 px-4 py-2.5">
+        <button
+          type="button"
+          onClick={() => setPanelOpen(true)}
+          className="rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 md:hidden"
+        >
+          ☰ Tools
+        </button>
         <h1 className="text-sm font-bold tracking-tight text-white">
           Sketchcast <span className="font-normal text-zinc-500">Studio</span>
         </h1>
@@ -282,9 +329,29 @@ export default function Studio() {
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="w-[340px] shrink-0 overflow-hidden border-r border-zinc-800 p-3">
+        {panelOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 md:hidden"
+            onClick={() => setPanelOpen(false)}
+          />
+        )}
+        <aside
+          className={`${
+            panelOpen ? "translate-x-0" : "-translate-x-full"
+          } fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[340px] shrink-0 transform overflow-hidden border-r border-zinc-800 bg-zinc-950 p-3 transition-transform duration-200 md:static md:z-auto md:w-[340px] md:translate-x-0 md:transition-none`}
+        >
+          <div className="mb-2 flex justify-end md:hidden">
+            <button
+              type="button"
+              onClick={() => setPanelOpen(false)}
+              className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300"
+            >
+              Close ✕
+            </button>
+          </div>
           <SidePanel
             onInsert={insertMermaid}
+            onSaveToTray={saveToTray}
             seedConcept={seedConcept}
             onConceptUsed={setSeedConcept}
             script={script}
@@ -297,6 +364,10 @@ export default function Studio() {
             onDeleteTemplate={handleDeleteTemplate}
             takes={takes}
             onDeleteTake={handleDeleteTake}
+            onEditTake={(take) => {
+              setEditingTake(take);
+              setPanelOpen(false);
+            }}
           />
         </aside>
 
@@ -368,6 +439,14 @@ export default function Studio() {
           />
         </main>
       </div>
+
+      {editingTake && (
+        <TakeEditor
+          take={editingTake}
+          onClose={() => setEditingTake(null)}
+          onExported={handleEditedExport}
+        />
+      )}
     </div>
   );
 }

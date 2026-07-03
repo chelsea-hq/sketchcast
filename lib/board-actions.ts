@@ -33,6 +33,43 @@ export async function insertMermaidIntoScene(
   api.scrollToContent(converted, { fitToViewport: true, animate: true });
 }
 
+/**
+ * Parses Mermaid into Excalidraw elements and stores them as a Library item
+ * instead of placing them on the board. The Library panel acts as the
+ * staging tray: the creator drags items onto the canvas mid-recording, and
+ * since the panel is DOM (not canvas) it never appears in the export.
+ */
+export async function addMermaidToTray(
+  api: ExcalidrawImperativeAPI,
+  mermaid: string,
+  name: string
+): Promise<void> {
+  const { parseMermaidToExcalidraw } = await import(
+    "@excalidraw/mermaid-to-excalidraw"
+  );
+  const { elements, files } = await parseMermaidToExcalidraw(mermaid);
+  const converted = convertToExcalidrawElements(
+    elements as Parameters<typeof convertToExcalidrawElements>[0],
+    { regenerateIds: true }
+  );
+  if (files) {
+    api.addFiles(Object.values(files));
+  }
+  await api.updateLibrary({
+    libraryItems: [
+      {
+        id: `tray_${Date.now()}`,
+        status: "unpublished",
+        created: Date.now(),
+        name: name.slice(0, 60),
+        elements: converted,
+      },
+    ],
+    merge: true,
+    openLibraryMenu: true,
+  });
+}
+
 export function captureTemplateScene(
   api: ExcalidrawImperativeAPI
 ): SketchTemplate["scene"] {

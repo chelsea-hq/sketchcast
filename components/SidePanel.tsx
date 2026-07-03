@@ -14,6 +14,7 @@ type Tab = "ai" | "script" | "copy" | "templates" | "takes";
 
 interface SidePanelProps {
   onInsert: (mermaid: string) => Promise<boolean>;
+  onSaveToTray: (mermaid: string, name: string) => Promise<boolean>;
   seedConcept: string;
   onConceptUsed: (concept: string) => void;
   script: string;
@@ -26,13 +27,64 @@ interface SidePanelProps {
   onDeleteTemplate: (id: string) => void;
   takes: Take[];
   onDeleteTake: (id: string) => void;
+  onEditTake: (take: Take) => void;
+}
+
+function TabIcon({ tab }: { tab: Tab }) {
+  const common = {
+    className: "h-[18px] w-[18px]",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    viewBox: "0 0 24 24",
+  };
+  switch (tab) {
+    case "ai":
+      return (
+        <svg {...common}>
+          <path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3z" />
+          <path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z" />
+        </svg>
+      );
+    case "script":
+      return (
+        <svg {...common}>
+          <rect x="5" y="3" width="14" height="18" rx="2" />
+          <path d="M9 8h6M9 12h6M9 16h4" />
+        </svg>
+      );
+    case "copy":
+      return (
+        <svg {...common}>
+          <path d="M3 11l18-6-6 18-2.5-7.5L3 11z" />
+        </svg>
+      );
+    case "templates":
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="8" height="8" rx="1.5" />
+          <rect x="13" y="3" width="8" height="8" rx="1.5" />
+          <rect x="3" y="13" width="8" height="8" rx="1.5" />
+          <rect x="13" y="13" width="8" height="8" rx="1.5" />
+        </svg>
+      );
+    case "takes":
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 9h18M7 5v4M12 5v4M17 5v4" />
+        </svg>
+      );
+  }
 }
 
 const TAB_LABELS: Record<Tab, string> = {
-  ai: "Diagram AI",
+  ai: "Diagram",
   script: "Script",
   copy: "Copy",
-  templates: "Templates",
+  templates: "Layouts",
   takes: "Takes",
 };
 
@@ -41,21 +93,24 @@ export default function SidePanel(props: SidePanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-3 flex flex-wrap gap-1">
+      <div className="mb-3 grid shrink-0 grid-cols-5 gap-1 rounded-xl bg-zinc-900 p-1">
         {(Object.keys(TAB_LABELS) as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
             onClick={() => setTab(key)}
-            className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+            className={`relative flex flex-col items-center gap-1 rounded-lg px-1 py-2 transition-colors ${
               tab === key
-                ? "bg-zinc-800 text-white"
-                : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
             }`}
           >
-            {TAB_LABELS[key]}
+            <TabIcon tab={key} />
+            <span className="text-[10px] font-semibold leading-none">
+              {TAB_LABELS[key]}
+            </span>
             {key === "takes" && props.takes.length > 0 && (
-              <span className="ml-1 rounded-full bg-indigo-600 px-1.5 text-[10px] text-white">
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
                 {props.takes.length}
               </span>
             )}
@@ -64,7 +119,11 @@ export default function SidePanel(props: SidePanelProps) {
       </div>
       <div className="min-h-0 flex-1">
         {tab === "ai" && (
-          <AiPanel onInsert={props.onInsert} onConceptUsed={props.onConceptUsed} />
+          <AiPanel
+            onInsert={props.onInsert}
+            onSaveToTray={props.onSaveToTray}
+            onConceptUsed={props.onConceptUsed}
+          />
         )}
         {tab === "script" && (
           <ScriptPanel
@@ -86,9 +145,15 @@ export default function SidePanel(props: SidePanelProps) {
           />
         )}
         {tab === "takes" && (
-          <TakesPanel takes={props.takes} onDelete={props.onDeleteTake} />
+          <TakesPanel
+            takes={props.takes}
+            onDelete={props.onDeleteTake}
+            onEdit={props.onEditTake}
+          />
         )}
       </div>
     </div>
   );
 }
+
+export type { Tab };

@@ -17,10 +17,15 @@ interface DiagramEntry {
 
 interface AiPanelProps {
   onInsert: (mermaid: string) => Promise<boolean>;
+  onSaveToTray: (mermaid: string, name: string) => Promise<boolean>;
   onConceptUsed: (concept: string) => void;
 }
 
-export default function AiPanel({ onInsert, onConceptUsed }: AiPanelProps) {
+export default function AiPanel({
+  onInsert,
+  onSaveToTray,
+  onConceptUsed,
+}: AiPanelProps) {
   const [concept, setConcept] = useState("");
   const [busy, setBusy] = useState(false);
   const [inserting, setInserting] = useState<string | null>(null);
@@ -68,6 +73,17 @@ export default function AiPanel({ onInsert, onConceptUsed }: AiPanelProps) {
     if (ok) toast.success("Added to the whiteboard. Drag pieces as you talk.");
   };
 
+  const stash = async (entry: DiagramEntry) => {
+    setInserting(entry.id);
+    const ok = await onSaveToTray(entry.result.mermaid, entry.concept);
+    setInserting(null);
+    if (ok) {
+      toast.success(
+        "Saved to the tray (Library panel on the board). Drag it on while you record; viewers never see the panel."
+      );
+    }
+  };
+
   return (
     <div className="flex h-full flex-col gap-3">
       <div>
@@ -95,8 +111,10 @@ export default function AiPanel({ onInsert, onConceptUsed }: AiPanelProps) {
         {entries.length === 0 && (
           <p className="text-xs leading-relaxed text-zinc-500">
             Describe the idea you’re teaching and get a ready-made whiteboard
-            layout: boxes, arrows, and a talk track. One click drops it onto
-            the board where every piece stays draggable.
+            layout: boxes, arrows, and a talk track. “Add to board” drops it
+            on now; “Save to tray” stages it in the board’s Library panel so
+            you can drag it on mid-recording, Canva-style. Viewers never see
+            the panel, only what lands on the board.
           </p>
         )}
         {entries.map((entry) => (
@@ -124,13 +142,22 @@ export default function AiPanel({ onInsert, onConceptUsed }: AiPanelProps) {
               </button>
               <button
                 type="button"
+                onClick={() => stash(entry)}
+                disabled={inserting === entry.id}
+                title="Stage it in the board's Library panel and drag it on while recording"
+                className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
+              >
+                Save to tray
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(entry.result.mermaid);
                   toast.success("Mermaid code copied");
                 }}
                 className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300 hover:bg-zinc-700"
               >
-                Copy Mermaid
+                Copy
               </button>
             </div>
           </div>
