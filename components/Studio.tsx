@@ -96,6 +96,16 @@ export default function Studio() {
     return () => window.clearInterval(timer);
   }, [recState]);
 
+  // Takes are in-memory blobs; warn before a reload/close throws them away
+  useEffect(() => {
+    if (takes.length === 0 && recState === "idle") return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [takes.length, recState]);
+
   const startSession = async () => {
     try {
       const media = await navigator.mediaDevices.getUserMedia({

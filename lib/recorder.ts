@@ -109,6 +109,11 @@ export class SessionRecorder {
   }
 
   stop(): void {
+    // Stopping while paused: fold the final pause segment into pausedTotal
+    // so the reported duration matches the actual video length
+    if (this.recorder?.state === "paused") {
+      this.pausedTotal += performance.now() - this.pausedAt;
+    }
     if (this.recorder && this.recorder.state !== "inactive") {
       this.recorder.stop();
     } else {

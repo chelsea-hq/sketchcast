@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+import { guardApiRequest } from "@/lib/api-guard";
 import { fallbackDiagram } from "@/lib/fallbacks";
 
 export const maxDuration = 60;
@@ -35,6 +36,9 @@ const SCHEMA = {
 } as const;
 
 export async function POST(request: Request) {
+  const blocked = guardApiRequest(request);
+  if (blocked) return blocked;
+
   let concept = "";
   try {
     const body = (await request.json()) as { concept?: string };

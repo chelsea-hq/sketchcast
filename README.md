@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sketchcast Studio
 
-## Getting Started
+Record whiteboard explainers with your webcam and a teleprompter, entirely in the browser. Type a concept, get a ready-made diagram on an Excalidraw board, drag the pieces around as you talk, and export a platform-ready video.
 
-First, run the development server:
+## What it does
+
+- **AI diagrams**: describe a concept in the Diagram AI tab and Claude turns it into a whiteboard layout (boxes, arrows, talk track). One click drops it onto the board where every piece stays draggable. Works offline with template diagrams when no API key is set.
+- **Recording**: the board and your webcam bubble are composited into one video at full export resolution. 16:9 (1920×1080), 9:16 (1080×1920), and 1:1 (1080×1080).
+- **Teleprompter**: your script scrolls over the stage while you record. Only you see it; it is never captured in the video.
+- **Webcam bubble**: circular overlay, bottom-right by default. Click it to move corners, use the slider to resize. What you see on stage is exactly what lands in the export.
+- **Social copy**: generate hooks, titles, platform descriptions, and hashtags for the finished video. One click to copy each.
+- **Templates**: save the board, script, format, and webcam layout. Load it back for the next topic.
+- **Images**: paste (Cmd+V), drag-drop, or use the board's image tool.
+
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000, click "Start session · camera + mic", and record.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Claude API key (optional but recommended)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Without a key the app uses offline generators. For tailored diagrams and copy, put your key in `.env.local`:
 
-## Learn More
+```
+ANTHROPIC_API_KEY=sk-ant-…
+SKETCHCAST_MODEL=claude-opus-4-8
+```
 
-To learn more about Next.js, take a look at the following resources:
+`SKETCHCAST_MODEL` accepts any Claude model id; drop it to `claude-haiku-4-5` for cheaper generations.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Recording uses MediaRecorder. Chrome and Edge export best (mp4 where supported, webm otherwise). Safari support varies.
+- Takes live in browser memory until you download them; nothing is uploaded anywhere. Download before closing the tab (the app warns you if you have undownloaded takes).
+- Templates live in localStorage; very large pasted images can exceed the browser's storage quota.
