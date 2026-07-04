@@ -84,14 +84,23 @@ export default function Studio() {
     const update = () => {
       const cw = el.clientWidth;
       const ch = el.clientHeight;
+      // Keep the recorded frame clear of Excalidraw's floating UI: toolbar
+      // band up top, zoom/undo island at the bottom
+      const topUi = ch < 520 ? 56 : 84;
+      const bottomUi = ch < 520 ? 44 : 56;
       const pad = 16;
       const scale = Math.min(
         (cw - pad * 2) / spec.width,
-        (ch - pad * 2) / spec.height
+        (ch - topUi - bottomUi) / spec.height
       );
-      const w = Math.max(200, Math.floor(spec.width * scale));
-      const h = Math.max(200, Math.floor(spec.height * scale));
-      setCrop({ x: Math.floor((cw - w) / 2), y: Math.floor((ch - h) / 2), w, h });
+      const w = Math.max(180, Math.floor(spec.width * scale));
+      const h = Math.max(180, Math.floor(spec.height * scale));
+      setCrop({
+        x: Math.floor((cw - w) / 2),
+        y: Math.floor(topUi + (ch - topUi - bottomUi - h) / 2),
+        w,
+        h,
+      });
     };
     update();
     const observer = new ResizeObserver(update);
@@ -410,7 +419,7 @@ export default function Studio() {
                   boxShadow: "0 0 0 9999px rgba(24, 24, 27, 0.6)",
                 }}
               >
-                {crop.x > 90 && (
+                {(crop.x > 90 || crop.y > 60) && (
                   <span className="absolute bottom-1.5 left-1.5 rounded bg-zinc-900/80 px-1.5 py-0.5 text-[10px] font-medium text-zinc-300">
                     Recorded area · the dim wings are your backstage
                   </span>
@@ -429,7 +438,7 @@ export default function Studio() {
                   onChange={(patch) => setPrompter((p) => ({ ...p, ...patch }))}
                 />
                 {recState !== "idle" && (
-                  <div className="absolute bottom-16 left-3 z-40 flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
+                  <div className="absolute bottom-3 left-3 z-40 flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
                     <span
                       className={`h-2 w-2 rounded-full bg-red-500 ${
                         recState === "recording" ? "animate-pulse" : ""
