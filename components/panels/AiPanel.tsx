@@ -8,7 +8,8 @@ import { apiKeyHeaders } from "@/lib/user-keys";
 interface DiagramResult {
   mermaid: string;
   talkTrack: string[];
-  source: "claude" | "offline";
+  script?: string;
+  source: string;
 }
 
 interface DiagramEntry {
@@ -20,12 +21,16 @@ interface DiagramEntry {
 interface AiPanelProps {
   onInsert: (mermaid: string) => Promise<boolean>;
   onSaveToTray: (mermaid: string, name: string) => Promise<boolean>;
+  onUseScript: (script: string) => void;
+  onOpenKeys: () => void;
   onConceptUsed: (concept: string) => void;
 }
 
 export default function AiPanel({
   onInsert,
   onSaveToTray,
+  onUseScript,
+  onOpenKeys,
   onConceptUsed,
 }: AiPanelProps) {
   const [concept, setConcept] = useState("");
@@ -96,7 +101,7 @@ export default function AiPanel({
           value={concept}
           onChange={(e) => setConcept(e.target.value)}
           rows={3}
-          placeholder="e.g. How DNS resolves a domain name, step by step"
+          placeholder={"e.g. How DNS resolves a domain name, step by step. You can ask for style too: “blue circles for each step”"}
           className="w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none"
         />
         <button
@@ -124,6 +129,20 @@ export default function AiPanel({
             key={entry.id}
             className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3"
           >
+            {entry.result.source === "offline" && (
+              <div className="mb-2 flex items-center justify-between gap-2 rounded-md bg-amber-500/10 px-2 py-1.5">
+                <span className="text-[11px] font-medium text-amber-300">
+                  Template mode · no AI key
+                </span>
+                <button
+                  type="button"
+                  onClick={onOpenKeys}
+                  className="rounded bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/30"
+                >
+                  Add AI key
+                </button>
+              </div>
+            )}
             <p className="text-xs font-medium text-zinc-300">{entry.concept}</p>
             <ul className="mt-2 space-y-1">
               {entry.result.talkTrack.map((beat, i) => (
@@ -133,7 +152,7 @@ export default function AiPanel({
                 </li>
               ))}
             </ul>
-            <div className="mt-2.5 flex gap-1.5">
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => insert(entry)}
@@ -142,6 +161,21 @@ export default function AiPanel({
               >
                 {inserting === entry.id ? "Adding…" : "Add to board"}
               </button>
+              {entry.result.script && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUseScript(entry.result.script ?? "");
+                    toast.success(
+                      "Script sent to the prompter. Fine-tune it in the Script tab."
+                    );
+                  }}
+                  title="Load the matching teleprompter script into the Script tab"
+                  className="rounded-md bg-emerald-600/20 px-2.5 py-1 text-xs font-medium text-emerald-300 hover:bg-emerald-600/30"
+                >
+                  Use script
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => stash(entry)}

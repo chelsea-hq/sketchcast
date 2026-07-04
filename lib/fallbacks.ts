@@ -23,6 +23,7 @@ function splitIntoSteps(concept: string): string[] {
 export function fallbackDiagram(concept: string): {
   mermaid: string;
   talkTrack: string[];
+  script: string;
 } {
   const steps = splitIntoSteps(concept);
   const ids = "ABCDEFGH".split("");
@@ -40,6 +41,19 @@ export function fallbackDiagram(concept: string): {
       lines.push(`  ${ids[i]} --> ${ids[i + 1]}`);
     }
   }
+  const spokenSteps =
+    steps.length > 1
+      ? steps
+          .map((step, i) =>
+            i === 0
+              ? `It starts with ${step.toLowerCase()}.`
+              : i === steps.length - 1
+                ? `And that's how you get to ${step.toLowerCase()}.`
+                : `From there, ${step.toLowerCase()}.`
+          )
+          .join(" ")
+      : `Here's the core idea: ${concept.trim()}. Let me show you why it matters, how it works, and a quick example.`;
+
   return {
     mermaid: lines.join("\n"),
     talkTrack: [
@@ -48,6 +62,7 @@ export function fallbackDiagram(concept: string): {
       "Pause on the step people usually get wrong",
       "Close with the one thing to remember",
     ],
+    script: `If you've ever wondered about ${concept.trim().toLowerCase()}, this board is for you. ${spokenSteps} If this helped, save it and share it with someone who needs it.`,
   };
 }
 

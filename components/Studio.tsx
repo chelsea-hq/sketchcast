@@ -7,7 +7,7 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import Board from "./Board";
 import RecordBar, { type RecState } from "./RecordBar";
 import SettingsModal from "./SettingsModal";
-import SidePanel from "./SidePanel";
+import SidePanel, { type Tab } from "./SidePanel";
 import TakeEditor from "./TakeEditor";
 import Teleprompter, { type PrompterSettings } from "./Teleprompter";
 import WebcamBubble from "./WebcamBubble";
@@ -51,6 +51,7 @@ export default function Studio() {
   const [templates, setTemplates] = useState<SketchTemplate[]>(() => listTemplates());
   const [crop, setCrop] = useState({ x: 0, y: 0, w: 960, h: 540 });
   const [panelOpen, setPanelOpen] = useState(false);
+  const [panelTab, setPanelTab] = useState<Tab>("ai");
   const [editingTake, setEditingTake] = useState<Take | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [prompter, setPrompter] = useState<PrompterSettings>({
@@ -206,7 +207,10 @@ export default function Studio() {
             ...prev,
           ]);
           setRecState("idle");
-          toast.success("Take saved. Preview and download it in the Takes tab.");
+          // Jump straight to the take so there's no hunting for it
+          setPanelTab("takes");
+          setPanelOpen(true);
+          toast.success("Take saved. It's right here in the Takes tab.");
         },
       });
       recorderRef.current = recorder;
@@ -229,7 +233,16 @@ export default function Studio() {
         return false;
       }
       try {
-        await insertMermaidIntoScene(api, mermaid);
+        // Land the diagram inside the visible part of the recorded frame,
+        // below the prompter when it's showing
+        const c = cropRef.current;
+        const topPad = prompter.visible ? c.h * 0.4 : c.h * 0.08;
+        await insertMermaidIntoScene(api, mermaid, {
+          x: c.x + c.w * 0.06,
+          y: c.y + topPad,
+          w: c.w * 0.88,
+          h: Math.max(60, c.h - topPad - c.h * 0.08),
+        });
         return true;
       } catch (error) {
         console.error(error);
@@ -237,7 +250,7 @@ export default function Studio() {
         return false;
       }
     },
-    [api]
+    [api, prompter.visible]
   );
 
   const saveToTray = useCallback(
@@ -273,6 +286,7 @@ export default function Studio() {
       },
       ...prev,
     ]);
+    setPanelTab("takes");
   };
 
   const handleSaveTemplate = (name: string) => {
@@ -376,8 +390,12 @@ export default function Studio() {
             </button>
           </div>
           <SidePanel
+            tab={panelTab}
+            onTabChange={setPanelTab}
             onInsert={insertMermaid}
             onSaveToTray={saveToTray}
+            onUseScript={(s) => setScript(s)}
+            onOpenKeys={() => setSettingsOpen(true)}
             seedConcept={seedConcept}
             onConceptUsed={setSeedConcept}
             script={script}

@@ -4,16 +4,19 @@ import { fallbackDiagram } from "@/lib/fallbacks";
 
 export const maxDuration = 60;
 
-const SYSTEM = `You turn a creator's concept into a whiteboard diagram they can teach from on camera.
+const SYSTEM = `You turn a creator's concept into a whiteboard diagram they can teach from on camera, plus the words to say over it.
 
 Rules for the diagram:
 - Output Mermaid code only, in the JSON field requested. Prefer "flowchart TD" or "flowchart LR"; use "sequenceDiagram" only when the concept is genuinely an interaction between parties.
 - 5 to 12 nodes. Node labels are 6 words or fewer, plain language, no jargon unless the concept is the jargon.
 - Wrap every node label in double quotes inside the brackets, e.g. A["Like this"].
-- No style/classDef/click directives. No HTML in labels.
+- Honor the creator's styling requests: shapes via Mermaid node syntax (["rectangle"], ("rounded"), (("circle")), {"diamond"}), and if they ask for colors add style lines after the nodes, e.g. style A fill:#dbeafe,stroke:#1d4ed8. When no style is requested, keep it plain black-on-white.
+- No classDef or click directives. No HTML in labels.
 - The diagram must read as a story: a viewer should follow it top-to-bottom or left-to-right while the creator talks.
 
-Also produce a talk track: 3 to 5 short beats the creator can say while pointing at the diagram, ordered to match the diagram flow.`;
+Also produce:
+- talkTrack: 3 to 5 short beats the creator can glance at while pointing at the diagram, ordered to match the flow.
+- script: a 60-90 second teleprompter script in first person, conversational and energetic, that opens with a hook, walks the diagram nodes in order (naming them naturally, not "box A"), and ends with a call to action. Short sentences that are easy to read aloud.`;
 
 const SCHEMA = {
   type: "object",
@@ -27,8 +30,13 @@ const SCHEMA = {
       items: { type: "string" },
       description: "3-5 spoken beats matching the diagram flow",
     },
+    script: {
+      type: "string",
+      description:
+        "60-90 second first-person teleprompter script walking the diagram in order",
+    },
   },
-  required: ["mermaid", "talkTrack"],
+  required: ["mermaid", "talkTrack", "script"],
   additionalProperties: false,
 } as const;
 
@@ -53,6 +61,7 @@ export async function POST(request: Request) {
     const parsed = await generateStructured<{
       mermaid: string;
       talkTrack: string[];
+      script: string;
     }>({
       ...ai,
       system: SYSTEM,

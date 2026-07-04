@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import type { PrompterSettings } from "./Teleprompter";
 import AiPanel from "./panels/AiPanel";
 import CopyPanel from "./panels/CopyPanel";
@@ -13,8 +11,12 @@ import type { SketchTemplate } from "@/lib/templates";
 type Tab = "ai" | "script" | "copy" | "templates" | "takes";
 
 interface SidePanelProps {
+  tab: Tab;
+  onTabChange: (tab: Tab) => void;
   onInsert: (mermaid: string) => Promise<boolean>;
   onSaveToTray: (mermaid: string, name: string) => Promise<boolean>;
+  onUseScript: (script: string) => void;
+  onOpenKeys: () => void;
   seedConcept: string;
   onConceptUsed: (concept: string) => void;
   script: string;
@@ -89,7 +91,7 @@ const TAB_LABELS: Record<Tab, string> = {
 };
 
 export default function SidePanel(props: SidePanelProps) {
-  const [tab, setTab] = useState<Tab>("ai");
+  const { tab, onTabChange } = props;
 
   return (
     <div className="flex h-full flex-col">
@@ -98,7 +100,7 @@ export default function SidePanel(props: SidePanelProps) {
           <button
             key={key}
             type="button"
-            onClick={() => setTab(key)}
+            onClick={() => onTabChange(key)}
             className={`relative flex flex-col items-center gap-1 rounded-lg px-1 py-2 transition-colors ${
               tab === key
                 ? "bg-indigo-600 text-white"
@@ -122,6 +124,8 @@ export default function SidePanel(props: SidePanelProps) {
           <AiPanel
             onInsert={props.onInsert}
             onSaveToTray={props.onSaveToTray}
+            onUseScript={props.onUseScript}
+            onOpenKeys={props.onOpenKeys}
             onConceptUsed={props.onConceptUsed}
           />
         )}

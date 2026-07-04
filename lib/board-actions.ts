@@ -6,13 +6,23 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import type { SketchTemplate } from "./templates";
 
+export interface ViewFrame {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 /**
  * Converts Mermaid code into Excalidraw elements and appends them to the
- * current scene, then scrolls the new diagram into view.
+ * current scene. When a frame is given (the visible part of the recorded
+ * area), the view pans and zooms so the new diagram lands inside it
+ * instead of sprawling into the backstage wings.
  */
 export async function insertMermaidIntoScene(
   api: ExcalidrawImperativeAPI,
-  mermaid: string
+  mermaid: string,
+  frame?: ViewFrame | null
 ): Promise<void> {
   // Heavy dependency; only load it when a diagram is actually inserted
   const { parseMermaidToExcalidraw } = await import(
@@ -30,7 +40,40 @@ export async function insertMermaidIntoScene(
   if (files) {
     api.addFiles(Object.values(files));
   }
-  api.scrollToContent(converted, { fitToViewport: true, animate: true });
+
+  let framed = false;
+  if (frame && frame.w > 40 && frame.h > 40 && converted.length > 0) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const el of converted) {
+      minX = Math.min(minX, el.x);
+      minY = Math.min(minY, el.y);
+      maxX = Math.max(maxX, el.x + el.width);
+      maxY = Math.max(maxY, el.y + el.height);
+    }
+    const bw = maxX - minX;
+    const bh = maxY - minY;
+    if (bw > 0 && bh > 0) {
+      const zoom = Math.min((frame.w * 0.84) / bw, (frame.h * 0.8) / bh, 1.2);
+      const cx = frame.x + frame.w / 2;
+      const cy = frame.y + frame.h / 2;
+      api.updateScene({
+        appState: {
+          // Branded zoom type; the arithmetic above keeps it in sane bounds
+          zoom: { value: zoom as unknown as never },
+          scrollX: cx / zoom - (minX + bw / 2),
+          scrollY: cy / zoom - (minY + bh / 2),
+        },
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+      framed = true;
+    }
+  }
+  if (!framed) {
+    api.scrollToContent(converted, { fitToViewport: true, animate: true });
+  }
 }
 
 /**
