@@ -66,6 +66,14 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
     setLoadingWords(true);
     try {
       const wav = await extractWavFromTake(take.url);
+      // Hosting platforms cap upload bodies around 4.5 MB, roughly a
+      // 2-minute take at 16 kHz mono
+      if (wav.size > 4_000_000) {
+        toast.error(
+          "Transcripts are limited to takes of about 2 minutes during beta. Use the manual cut buttons for longer takes."
+        );
+        return;
+      }
       const res = await fetch("/api/transcribe", {
         method: "POST",
         headers: { "Content-Type": "audio/wav", ...apiKeyHeaders() },
@@ -73,7 +81,7 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
       });
       if (res.status === 501) {
         toast.info(
-          "Transcript editing needs a Deepgram key. Add DEEPGRAM_API_KEY to .env.local and restart."
+          "Transcript editing needs a Deepgram key. Add one under ⚙ Keys in the studio header."
         );
         return;
       }

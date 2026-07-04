@@ -1,3 +1,4 @@
+import { redactForLog } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
 
 export const maxDuration = 120;
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error: "no_key",
-        message: "Set DEEPGRAM_API_KEY in .env.local to enable transcripts",
+        message: "Add a Deepgram key under ⚙ Keys to enable transcripts",
       },
       { status: 501 }
     );
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
       body: audio,
     });
     if (!dg.ok) {
-      console.error("Deepgram error:", dg.status, await dg.text());
+      console.error("Deepgram error:", dg.status, redactForLog(await dg.text()));
       return Response.json({ error: "Transcription failed" }, { status: 502 });
     }
     const data = (await dg.json()) as {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
       })),
     });
   } catch (error) {
-    console.error("Transcription request failed:", error);
+    console.error("Transcription request failed:", redactForLog(error));
     return Response.json({ error: "Transcription failed" }, { status: 502 });
   }
 }

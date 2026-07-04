@@ -29,6 +29,12 @@ interface StructuredArgs extends AiRequestConfig {
   maxTokens: number;
 }
 
+/** Keep provider error details out of logs when they echo key fragments */
+export function redactForLog(error: unknown): string {
+  const text = error instanceof Error ? error.message : String(error);
+  return text.replace(/\b(?:sk|key|AIza)[-_A-Za-z0-9.…*]{6,}/g, "***").slice(0, 300);
+}
+
 function stripFences(raw: string): string {
   return raw
     .trim()

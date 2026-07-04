@@ -1,4 +1,4 @@
-import { generateStructured, readAiHeaders } from "@/lib/ai";
+import { generateStructured, readAiHeaders, redactForLog } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
 import { fallbackDiagram } from "@/lib/fallbacks";
 
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     });
     return Response.json({ ...parsed, source: ai.provider });
   } catch (error) {
-    console.error("Diagram generation fell back to offline mode:", error);
+    console.error("Diagram generation fell back to offline mode:", redactForLog(error));
     return Response.json({ ...fallbackDiagram(concept), source: "offline" });
   }
 }
