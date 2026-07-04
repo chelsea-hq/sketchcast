@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Counters from "@/components/landing/Counters";
-import PinnedTriplet from "@/components/landing/PinnedTriplet";
 import Pricing from "@/components/landing/Pricing";
 import Reveal from "@/components/landing/Reveal";
 import ScrollHero from "@/components/landing/ScrollHero";
@@ -67,7 +66,7 @@ const FAQ = [
   },
   {
     q: "Do I need my own API keys?",
-    a: "During the free beta, yes: paste an Anthropic key (diagrams, hooks, captions) and optionally a Deepgram key (transcripts) under ⚙ Keys. They stay in your browser. The planned Creator tier includes AI without any keys.",
+    a: "During the free beta, yes: paste an Anthropic key (diagrams, hooks, captions) and optionally a Deepgram key (transcripts) under ⚙ Keys. Keys are saved only in your browser and travel only inside your own requests to the AI providers; our server never stores or logs them. The planned Creator tier includes AI without any keys.",
   },
   {
     q: "Which browsers work best?",
@@ -100,11 +99,9 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Cinematic scroll-scrub hero: the studio assembles from particles */}
+      {/* Cinematic scroll-scrub hero: the studio assembles from particles,
+          then Sketch it / Say it / Ship it write themselves into the boxes */}
       <ScrollHero />
-
-      {/* Pinned triple reveal */}
-      <PinnedTriplet />
 
       {/* Dark fades to white */}
       <div className="h-40 bg-gradient-to-b from-zinc-950 to-white" aria-hidden />

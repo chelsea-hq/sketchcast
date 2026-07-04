@@ -19,13 +19,24 @@ function ease(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+interface BoxAnchor {
+  cx: number;
+  cy: number;
+  h: number;
+}
+
+const BOX_LABELS = ["Sketch it", "Say it", "Ship it"];
+
 /** Draws the studio line-art offscreen and samples it into particle targets */
-function buildTargets(w: number, h: number): Array<{ x: number; y: number }> {
+function buildTargets(
+  w: number,
+  h: number
+): { points: Array<{ x: number; y: number }>; boxes: BoxAnchor[] } {
   const off = document.createElement("canvas");
   off.width = w;
   off.height = h;
   const c = off.getContext("2d");
-  if (!c) return [];
+  if (!c) return { points: [], boxes: [] };
 
   const sw = Math.min(w * 0.66, 920);
   const sh = (sw * 9) / 16;
@@ -74,7 +85,12 @@ function buildTargets(w: number, h: number): Array<{ x: number; y: number }> {
       if (img[(y * w + x) * 4 + 3] > 128) points.push({ x, y });
     }
   }
-  return points;
+  const boxes: BoxAnchor[] = xs.map((bx) => ({
+    cx: bx + bw / 2,
+    cy: by + bh / 2,
+    h: bh,
+  }));
+  return { points, boxes };
 }
 
 /**
@@ -98,6 +114,7 @@ export default function ScrollHero() {
     let W = window.innerWidth;
     let H = window.innerHeight;
     let particles: Particle[] = [];
+    let boxes: BoxAnchor[] = [];
     let progress = reduced ? 1 : 0;
     let raf = 0;
 
@@ -110,7 +127,9 @@ export default function ScrollHero() {
       canvas.style.width = `${W}px`;
       canvas.style.height = `${H}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      particles = buildTargets(W, H).map((t) => ({
+      const built = buildTargets(W, H);
+      boxes = built.boxes;
+      particles = built.points.map((t) => ({
         tx: t.x,
         ty: t.y,
         sx: Math.random() * W,
@@ -151,6 +170,17 @@ export default function ScrollHero() {
         ctx.fillStyle = p.color;
         ctx.fillRect(x, y, 2.2, 2.2);
       }
+      // Labels hand-write themselves inside the assembled boxes, one per beat
+      boxes.forEach((box, i) => {
+        const a = Math.min(1, Math.max(0, (progress - (0.62 + i * 0.12)) / 0.09));
+        if (a <= 0) return;
+        ctx.globalAlpha = a;
+        ctx.fillStyle = "#e0e7ff";
+        ctx.font = `600 ${box.h * 0.34}px "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(BOX_LABELS[i], box.cx, box.cy + (1 - a) * 10);
+      });
       ctx.globalAlpha = 1;
       raf = requestAnimationFrame(draw);
     };
@@ -168,7 +198,7 @@ export default function ScrollHero() {
   }, []);
 
   return (
-    <div ref={wrapRef} className="relative" style={{ height: "260vh" }}>
+    <div ref={wrapRef} className="relative" style={{ height: "320vh" }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-zinc-950">
         <canvas ref={canvasRef} className="absolute inset-0" aria-hidden />
         {/* Headline dissolves as the studio assembles; the board owns the end state */}
@@ -208,8 +238,8 @@ export default function ScrollHero() {
         <div
           className="absolute inset-x-0 bottom-[9vh] z-10 flex flex-col items-center gap-3"
           style={{
-            opacity: Math.max(0, Math.min(1, (scrub - 0.7) / 0.22)),
-            pointerEvents: scrub > 0.8 ? "auto" : "none",
+            opacity: Math.max(0, Math.min(1, (scrub - 0.86) / 0.12)),
+            pointerEvents: scrub > 0.9 ? "auto" : "none",
           }}
         >
           <p className="text-sm font-medium text-zinc-300">
