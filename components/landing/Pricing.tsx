@@ -41,7 +41,7 @@ const TIERS: Tier[] = [
       "Brand kit: your colors + logo on slides",
       "No watermark, unlimited templates",
     ],
-    cta: "Join the waitlist",
+    cta: "Start free during beta",
     highlight: true,
   },
   {
@@ -56,7 +56,7 @@ const TIERS: Tier[] = [
       "White-label exports for clients",
       "Priority support",
     ],
-    cta: "Join the waitlist",
+    cta: "Start free during beta",
   },
 ];
 

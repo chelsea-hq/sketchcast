@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  // Placeholder domain until the real one is chosen
-  metadataBase: new URL("https://sketchcast.app"),
+  // Swap for the real domain once one is chosen
+  metadataBase: new URL("https://sketchcast-silk.vercel.app"),
   title: "Sketchcast Studio",
   description:
     "Whiteboard + webcam + teleprompter recording studio for educational creators. Type a concept, get a diagram, record, and export for every platform.",

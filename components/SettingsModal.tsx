@@ -36,7 +36,8 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
         <p className="text-xs leading-relaxed text-zinc-400">
           Bring your own keys. They’re stored only in this browser and travel
           only inside your own requests to the AI providers; the server never
-          stores or logs them.
+          stores or logs them. Tip: create a separate key just for Sketchcast
+          and set a spend cap in your provider’s console.
         </p>
 
         <div>

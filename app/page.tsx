@@ -36,29 +36,6 @@ const FEATURES = [
   },
 ];
 
-// Placeholder quotes for layout only. Replace with real beta feedback
-// before this page goes public.
-const TESTIMONIALS = [
-  {
-    quote:
-      "I scripted, recorded, and posted a whiteboard explainer in 25 minutes. That used to be an afternoon in a video editor.",
-    name: "Maya R.",
-    role: "Data science creator · beta",
-  },
-  {
-    quote:
-      "The teleprompter plus the tray changed how I record. I stopped memorizing and my takes got shorter and sharper.",
-    name: "Devon K.",
-    role: "Finance educator · beta",
-  },
-  {
-    quote:
-      "Remove filler words is worth the whole app. The 'ums' are gone and nobody can tell where they were.",
-    name: "Priya S.",
-    role: "Coding instructor · beta",
-  },
-];
-
 const FAQ = [
   {
     q: "Do my videos get uploaded anywhere?",
@@ -186,23 +163,21 @@ export default function Home() {
             ))}
           </section>
 
-          <section className="border-t border-zinc-200 py-16">
-            <h2 className="text-center text-3xl font-bold text-zinc-900">
-              Made for the way creators actually work
+          <section className="border-t border-zinc-200 py-16 text-center">
+            <h2 className="text-3xl font-bold text-zinc-900">
+              Be one of the first creators on Sketchcast
             </h2>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {TESTIMONIALS.map((t) => (
-                <blockquote
-                  key={t.name}
-                  className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
-                >
-                  <p className="text-sm leading-relaxed text-zinc-700">“{t.quote}”</p>
-                  <footer className="mt-4 text-xs text-zinc-500">
-                    <span className="font-semibold text-zinc-800">{t.name}</span> · {t.role}
-                  </footer>
-                </blockquote>
-              ))}
-            </div>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-600">
+              Fresh out of the workshop and free while in beta. Record
+              something real, tell us what's brilliant and what's broken, and
+              shape what gets built next.
+            </p>
+            <Link
+              href="/studio"
+              className="mt-6 inline-block rounded-xl bg-indigo-600 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+            >
+              Start free
+            </Link>
           </section>
 
           <div className="border-t border-zinc-200">
@@ -248,8 +223,19 @@ export default function Home() {
         </p>
       </section>
 
-      <footer className="border-t border-zinc-800 bg-zinc-950 py-8 text-center text-xs text-zinc-600">
-        Runs in your browser. Your videos never leave your machine until you post them.
+      <footer className="space-y-3 border-t border-zinc-800 bg-zinc-950 py-8 text-center text-xs text-zinc-600">
+        <p>
+          Runs in your browser. Your videos never leave your machine until you
+          post them.
+        </p>
+        <p className="space-x-4">
+          <Link href="/privacy" className="hover:text-zinc-400">
+            Privacy
+          </Link>
+          <Link href="/terms" className="hover:text-zinc-400">
+            Terms
+          </Link>
+        </p>
       </footer>
     </div>
   );
