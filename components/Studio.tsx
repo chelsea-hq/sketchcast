@@ -49,7 +49,7 @@ export default function Studio() {
   const [script, setScript] = useState("");
   const [seedConcept, setSeedConcept] = useState("");
   const [templates, setTemplates] = useState<SketchTemplate[]>(() => listTemplates());
-  const [stage, setStage] = useState({ w: 960, h: 540 });
+  const [crop, setCrop] = useState({ x: 0, y: 0, w: 960, h: 540 });
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingTake, setEditingTake] = useState<Take | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -74,28 +74,35 @@ export default function Studio() {
     webcamRef.current = webcamLive;
   });
 
-  // Fit the stage to the available space while holding the export aspect ratio
+  // The workspace fills all available space; the recorded frame (crop) is a
+  // centered region holding the export aspect ratio. Everything outside the
+  // frame is backstage: visible to the creator, never recorded.
   useEffect(() => {
-    const el = boardWrapRef.current;
+    const el = stageRef.current;
     if (!el) return;
     const spec = FORMATS[format];
     const update = () => {
-      const rect = el.getBoundingClientRect();
-      const pad = 28;
+      const cw = el.clientWidth;
+      const ch = el.clientHeight;
+      const pad = 16;
       const scale = Math.min(
-        (rect.width - pad) / spec.width,
-        (rect.height - pad) / spec.height
+        (cw - pad * 2) / spec.width,
+        (ch - pad * 2) / spec.height
       );
-      setStage({
-        w: Math.max(240, Math.floor(spec.width * scale)),
-        h: Math.max(240, Math.floor(spec.height * scale)),
-      });
+      const w = Math.max(200, Math.floor(spec.width * scale));
+      const h = Math.max(200, Math.floor(spec.height * scale));
+      setCrop({ x: Math.floor((cw - w) / 2), y: Math.floor((ch - h) / 2), w, h });
     };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(el);
     return () => observer.disconnect();
   }, [format]);
+
+  const cropRef = useRef(crop);
+  useEffect(() => {
+    cropRef.current = crop;
+  });
 
   useEffect(() => {
     if (recState !== "recording") return;
@@ -167,6 +174,7 @@ export default function Studio() {
     try {
       const recorder = new SessionRecorder({
         boardEl: stageEl,
+        getCrop: () => cropRef.current,
         getVideo: () => videoRef.current,
         micStream: stream,
         format,
@@ -383,37 +391,54 @@ export default function Studio() {
         <main className="flex min-w-0 flex-1 flex-col">
           <div
             ref={boardWrapRef}
-            className="relative flex min-h-0 flex-1 items-center justify-center bg-zinc-900"
+            className="relative min-h-0 flex-1 bg-zinc-900 p-2"
           >
             <div
               ref={stageRef}
-              className="relative overflow-hidden rounded-lg bg-white shadow-2xl"
-              style={{ width: stage.w, height: stage.h }}
+              className="relative h-full w-full overflow-hidden rounded-lg bg-white"
             >
               <Board onApiReady={setApi} />
-              <WebcamBubble
-                stream={stream}
-                layout={webcamLive}
-                stageW={stage.w}
-                stageH={stage.h}
-                videoRef={videoRef}
-                onCycleCorner={cycleCorner}
-              />
-              <Teleprompter
-                script={script}
-                settings={prompter}
-                onChange={(patch) => setPrompter((p) => ({ ...p, ...patch }))}
-              />
-              {recState !== "idle" && (
-                <div className="absolute bottom-16 left-3 z-40 flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
-                  <span
-                    className={`h-2 w-2 rounded-full bg-red-500 ${
-                      recState === "recording" ? "animate-pulse" : ""
-                    }`}
-                  />
-                  {recState === "paused" ? "PAUSED" : "REC"}
-                </div>
-              )}
+              {/* Recorded frame: only this region lands in the export.
+                  The dimmed wings around it are backstage workspace. */}
+              <div
+                className="pointer-events-none absolute z-[3] rounded-sm border border-zinc-500/60"
+                style={{
+                  left: crop.x,
+                  top: crop.y,
+                  width: crop.w,
+                  height: crop.h,
+                  boxShadow: "0 0 0 9999px rgba(24, 24, 27, 0.6)",
+                }}
+              >
+                {crop.x > 90 && (
+                  <span className="absolute bottom-1.5 left-1.5 rounded bg-zinc-900/80 px-1.5 py-0.5 text-[10px] font-medium text-zinc-300">
+                    Recorded area · the dim wings are your backstage
+                  </span>
+                )}
+                <WebcamBubble
+                  stream={stream}
+                  layout={webcamLive}
+                  stageW={crop.w}
+                  stageH={crop.h}
+                  videoRef={videoRef}
+                  onCycleCorner={cycleCorner}
+                />
+                <Teleprompter
+                  script={script}
+                  settings={prompter}
+                  onChange={(patch) => setPrompter((p) => ({ ...p, ...patch }))}
+                />
+                {recState !== "idle" && (
+                  <div className="absolute bottom-16 left-3 z-40 flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span
+                      className={`h-2 w-2 rounded-full bg-red-500 ${
+                        recState === "recording" ? "animate-pulse" : ""
+                      }`}
+                    />
+                    {recState === "paused" ? "PAUSED" : "REC"}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

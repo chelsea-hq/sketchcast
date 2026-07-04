@@ -52,7 +52,7 @@ export default function Teleprompter({
 
   return (
     <div
-      className="absolute inset-x-0 top-0 z-30 flex flex-col rounded-b-2xl text-white backdrop-blur-sm"
+      className="pointer-events-auto absolute inset-x-0 top-0 z-30 flex flex-col rounded-b-2xl text-white backdrop-blur-sm"
       style={{
         height: "38%",
         backgroundColor: `rgba(9, 9, 11, ${settings.opacity})`,

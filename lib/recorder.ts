@@ -8,9 +8,21 @@ const MIME_CANDIDATES = [
   "video/webm",
 ];
 
+export interface CropRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface RecorderOptions {
-  /** The element that contains the Excalidraw canvases (the stage) */
+  /** The element that contains the Excalidraw canvases (the workspace) */
   boardEl: HTMLElement;
+  /**
+   * The recorded frame within the workspace, in CSS pixels. Only this
+   * region lands in the export; the wings around it are backstage.
+   */
+  getCrop: () => CropRect;
   /** Read the live webcam video element each frame; null when the camera is off */
   getVideo: () => HTMLVideoElement | null;
   /** Mic/cam MediaStream so audio tracks can be mixed in, or null */
@@ -130,13 +142,31 @@ export class SessionRecorder {
     ctx.fillRect(0, 0, W, H);
 
     // Excalidraw renders its static content and in-progress strokes on
-    // stacked canvases inside the board element; draw them in DOM order.
+    // stacked canvases inside the board element; draw the recorded-frame
+    // region of each layer in DOM order.
+    const crop = this.opts.getCrop();
+    const cssW = this.opts.boardEl.clientWidth;
+    if (crop.w <= 0 || crop.h <= 0 || cssW <= 0) {
+      this.raf = requestAnimationFrame(this.draw);
+      return;
+    }
     const layers = this.opts.boardEl.querySelectorAll<HTMLCanvasElement>(
       "canvas.excalidraw__canvas"
     );
     for (const layer of layers) {
       if (layer.width === 0 || layer.height === 0) continue;
-      ctx.drawImage(layer, 0, 0, layer.width, layer.height, 0, 0, W, H);
+      const scale = layer.width / cssW;
+      ctx.drawImage(
+        layer,
+        crop.x * scale,
+        crop.y * scale,
+        crop.w * scale,
+        crop.h * scale,
+        0,
+        0,
+        W,
+        H
+      );
     }
 
     this.drawWebcam(W, H);

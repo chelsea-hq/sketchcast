@@ -61,7 +61,7 @@ export default function CopyPanel({ seedConcept, script }: CopyPanelProps) {
       const data = (await res.json()) as SocialCopy & { source?: string };
       setResult(data);
       if (data.source === "offline") {
-        toast.info("Built offline templates. Add ANTHROPIC_API_KEY for tailored copy.");
+        toast.info("Built offline templates. Add an AI key under ⚙ Keys for tailored copy.");
       }
     } catch (error) {
       console.error(error);

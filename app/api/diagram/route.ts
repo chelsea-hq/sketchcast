@@ -1,11 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
-
+import { generateStructured, readAiHeaders } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
 import { fallbackDiagram } from "@/lib/fallbacks";
 
 export const maxDuration = 60;
-
-const MODEL = process.env.SKETCHCAST_MODEL || "claude-opus-4-8";
 
 const SYSTEM = `You turn a creator's concept into a whiteboard diagram they can teach from on camera.
 
@@ -51,27 +48,19 @@ export async function POST(request: Request) {
   }
   if (concept.length > 2000) concept = concept.slice(0, 2000);
 
+  const ai = readAiHeaders(request);
   try {
-    // Bring-your-own-key: a browser-supplied key wins over the server env
-    const userKey = request.headers.get("x-anthropic-key")?.trim();
-    const client = new Anthropic(userKey ? { apiKey: userKey } : {});
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2048,
+    const parsed = await generateStructured<{
+      mermaid: string;
+      talkTrack: string[];
+    }>({
+      ...ai,
       system: SYSTEM,
-      output_config: { format: { type: "json_schema", schema: SCHEMA } },
-      messages: [
-        {
-          role: "user",
-          content: `Concept to diagram for an educational video: ${concept}`,
-        },
-      ],
+      user: `Concept to diagram for an educational video: ${concept}`,
+      schema: SCHEMA,
+      maxTokens: 2048,
     });
-
-    const text = response.content.find((b) => b.type === "text")?.text;
-    if (!text) throw new Error("Empty model response");
-    const parsed = JSON.parse(text) as { mermaid: string; talkTrack: string[] };
-    return Response.json({ ...parsed, source: "claude" });
+    return Response.json({ ...parsed, source: ai.provider });
   } catch (error) {
     console.error("Diagram generation fell back to offline mode:", error);
     return Response.json({ ...fallbackDiagram(concept), source: "offline" });

@@ -43,7 +43,7 @@ export default function WebcamBubble({
       type="button"
       onClick={onCycleCorner}
       title="Click to move the webcam to the next corner"
-      className="absolute z-20 cursor-pointer overflow-hidden rounded-full shadow-xl ring-2 ring-white/90 transition-opacity hover:ring-indigo-400"
+      className="pointer-events-auto absolute z-20 cursor-pointer overflow-hidden rounded-full shadow-xl ring-2 ring-white/90 transition-opacity hover:ring-indigo-400"
       style={{
         left: x,
         top: y,

@@ -66,7 +66,7 @@ const FAQ = [
   },
   {
     q: "Do I need my own API keys?",
-    a: "During the free beta, yes: paste an Anthropic key (diagrams, hooks, captions) and optionally a Deepgram key (transcripts) under ⚙ Keys. Keys are saved only in your browser and travel only inside your own requests to the AI providers; our server never stores or logs them. The planned Creator tier includes AI without any keys.",
+    a: "During the free beta, yes: paste a key from Anthropic, OpenAI, OpenRouter, or Google Gemini (diagrams, hooks, captions) and optionally a Deepgram key (transcripts) under ⚙ Keys. Keys are saved only in your browser and travel only inside your own requests to the AI providers; our server never stores or logs them. The planned Creator tier includes AI without any keys.",
   },
   {
     q: "Which browsers work best?",

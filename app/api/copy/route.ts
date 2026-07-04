@@ -1,11 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
-
+import { generateStructured, readAiHeaders } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
-import { fallbackCopy } from "@/lib/fallbacks";
+import { fallbackCopy, type SocialCopy } from "@/lib/fallbacks";
 
 export const maxDuration = 60;
-
-const MODEL = process.env.SKETCHCAST_MODEL || "claude-opus-4-8";
 
 const SYSTEM = `You write scroll-stopping packaging for educational creator videos recorded on a whiteboard.
 
@@ -53,21 +50,16 @@ export async function POST(request: Request) {
     ? `Video concept: ${concept.slice(0, 1000)}\n\nCreator's script/notes:\n${script.slice(0, 4000)}`
     : `Video concept: ${concept.slice(0, 1000)}`;
 
+  const ai = readAiHeaders(request);
   try {
-    // Bring-your-own-key: a browser-supplied key wins over the server env
-    const userKey = request.headers.get("x-anthropic-key")?.trim();
-    const client = new Anthropic(userKey ? { apiKey: userKey } : {});
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2048,
+    const parsed = await generateStructured<SocialCopy>({
+      ...ai,
       system: SYSTEM,
-      output_config: { format: { type: "json_schema", schema: SCHEMA } },
-      messages: [{ role: "user", content: userMessage }],
+      user: userMessage,
+      schema: SCHEMA,
+      maxTokens: 2048,
     });
-
-    const text = response.content.find((b) => b.type === "text")?.text;
-    if (!text) throw new Error("Empty model response");
-    return Response.json({ ...JSON.parse(text), source: "claude" });
+    return Response.json({ ...parsed, source: ai.provider });
   } catch (error) {
     console.error("Copy generation fell back to offline mode:", error);
     return Response.json({ ...fallbackCopy(concept), source: "offline" });

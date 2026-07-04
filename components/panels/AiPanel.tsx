@@ -55,7 +55,7 @@ export default function AiPanel({
       onConceptUsed(trimmed);
       if (result.source === "offline") {
         toast.info(
-          "Built offline (no Claude key found). Add ANTHROPIC_API_KEY for smarter diagrams."
+          "Built offline. Add an AI key under ⚙ Keys for smarter diagrams."
         );
       } else {
         toast.success("Diagram ready. Add it to the board.");
