@@ -12,7 +12,7 @@ import shotTray from "@/public/shots/studio-tray.png";
 const FEATURES = [
   {
     title: "Concept in, diagram out",
-    body: "Type the idea you're teaching and AI sketches the whiteboard: boxes, arrows, and a talk track. Every piece stays draggable.",
+    body: "Type the idea you’re teaching and AI sketches the whiteboard: boxes, arrows, and a talk track. Every piece stays draggable.",
   },
   {
     title: "A teleprompter only you see",
@@ -169,7 +169,7 @@ export default function Home() {
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-600">
               Fresh out of the workshop and free while in beta. Record
-              something real, tell us what's brilliant and what's broken, and
+              something real, tell us what’s brilliant and what’s broken, and
               shape what gets built next.
             </p>
             <Link

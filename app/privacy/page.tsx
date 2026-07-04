@@ -16,15 +16,15 @@ export default function PrivacyPage() {
 
         <h2 className="pt-2 text-base font-semibold text-white">The short version</h2>
         <p>
-          Sketchcast runs in your browser. We don't have user accounts, we
-          don't run analytics or ad trackers, and we don't store your videos,
+          Sketchcast runs in your browser. We don’t have user accounts, we
+          don’t run analytics or ad trackers, and we don’t store your videos,
           scripts, templates, or API keys on our servers.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">What stays on your device</h2>
         <p>
-          Your recordings live in your browser's memory until you download
-          them. Your saved templates and API keys live in your browser's local
+          Your recordings live in your browser’s memory until you download
+          them. Your saved templates and API keys live in your browser’s local
           storage on your machine. None of these are transmitted to us for
           storage.
         </p>
@@ -36,16 +36,16 @@ export default function PrivacyPage() {
           text and script pass through our server to the AI provider you chose
           (Anthropic, OpenAI, OpenRouter, or Google), authenticated with your
           own API key. We forward your key with that request and do not store
-          or log it. (2) Transcripts: when you click "Load transcript," the
+          or log it. (2) Transcripts: when you click “Load transcript,” the
           audio of that take is sent through our server to Deepgram to be
           transcribed, then discarded. (3) Hosting: our host (Vercel) keeps
           standard, short-lived request logs such as IP address and user
-          agent, as virtually every website's infrastructure does.
+          agent, as virtually every website’s infrastructure does.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Third-party AI providers</h2>
         <p>
-          Content you send to an AI provider is handled under that provider's
+          Content you send to an AI provider is handled under that provider’s
           own terms and privacy policy, tied to your API key and account with
           them. Check their policies for how they handle API data.
         </p>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
 
         <h2 className="pt-2 text-base font-semibold text-white">Changes and contact</h2>
         <p>
-          We'll update this page as the product evolves (for example, if
+          We’ll update this page as the product evolves (for example, if
           accounts or analytics are ever added, this policy will say so
           first). Questions: easyroadup@gmail.com.
         </p>

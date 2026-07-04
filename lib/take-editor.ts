@@ -225,7 +225,6 @@ export async function exportEditedTake(options: {
     loop();
   };
 
-  const startedAt = performance.now();
   recorder.start(1000);
   try {
     let emitted = 0;
@@ -274,6 +273,8 @@ export async function exportEditedTake(options: {
     blob: new Blob(chunks, { type: mimeType }),
     mimeType,
     extension: mimeType.startsWith("video/mp4") ? "mp4" : "webm",
-    durationMs: performance.now() - startedAt,
+    // Planned output length, not wall clock: seeks and setup overhead
+    // would otherwise inflate the reported duration
+    durationMs: total * 1000,
   };
 }

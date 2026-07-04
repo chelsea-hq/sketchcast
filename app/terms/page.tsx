@@ -26,23 +26,23 @@ export default function TermsPage() {
         <p>
           Everything you create with Sketchcast (recordings, boards, scripts,
           exports) is yours. We claim no rights to it and, since it never
-          reaches our servers, we couldn't use it if we wanted to.
+          reaches our servers, we couldn’t use it if we wanted to.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Your API keys and costs</h2>
         <p>
           Bring-your-own-key features call AI providers using your keys and
-          your accounts. You're responsible for the usage costs those calls
-          incur and for complying with each provider's terms. We recommend
+          your accounts. You’re responsible for the usage costs those calls
+          incur and for complying with each provider’s terms. We recommend
           creating a dedicated key for Sketchcast and setting a spend limit in
-          your provider's console.
+          your provider’s console.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Acceptable use</h2>
         <p>
-          Don't use Sketchcast to create content that's illegal or that
-          violates the policies of the AI providers your keys belong to. Don't
-          attempt to disrupt, overload, or reverse the service's security
+          Don’t use Sketchcast to create content that’s illegal or that
+          violates the policies of the AI providers your keys belong to. Don’t
+          attempt to disrupt, overload, or reverse the service’s security
           measures.
         </p>
 
