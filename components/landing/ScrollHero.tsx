@@ -27,10 +27,10 @@ function buildTargets(w: number, h: number): Array<{ x: number; y: number }> {
   const c = off.getContext("2d");
   if (!c) return [];
 
-  const sw = Math.min(w * 0.58, 780);
+  const sw = Math.min(w * 0.66, 920);
   const sh = (sw * 9) / 16;
   const sx = (w - sw) / 2;
-  const sy = h * 0.7 - sh / 2;
+  const sy = h * 0.52 - sh / 2;
   c.strokeStyle = "#fff";
   c.lineWidth = 3;
 
@@ -171,7 +171,15 @@ export default function ScrollHero() {
     <div ref={wrapRef} className="relative" style={{ height: "260vh" }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-zinc-950">
         <canvas ref={canvasRef} className="absolute inset-0" aria-hidden />
-        <div className="relative z-10 flex h-full flex-col items-center px-6 pt-[11vh] text-center">
+        {/* Headline dissolves as the studio assembles; the board owns the end state */}
+        <div
+          className="relative z-10 flex h-full flex-col items-center px-6 pt-[16vh] text-center"
+          style={{
+            opacity: Math.max(0, Math.min(1, 1 - (scrub - 0.22) / 0.3)),
+            transform: `translateY(${-Math.max(0, Math.min(1, (scrub - 0.22) / 0.3)) * 48}px)`,
+            pointerEvents: scrub > 0.4 ? "none" : "auto",
+          }}
+        >
           <p className="mb-5 inline-block rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300">
             For creators who teach
           </p>
@@ -195,6 +203,24 @@ export default function ScrollHero() {
               Free during beta · runs in your browser
             </span>
           </div>
+        </div>
+        {/* CTA returns once the studio has assembled */}
+        <div
+          className="absolute inset-x-0 bottom-[9vh] z-10 flex flex-col items-center gap-3"
+          style={{
+            opacity: Math.max(0, Math.min(1, (scrub - 0.7) / 0.22)),
+            pointerEvents: scrub > 0.8 ? "auto" : "none",
+          }}
+        >
+          <p className="text-sm font-medium text-zinc-300">
+            Your studio is ready.
+          </p>
+          <Link
+            href="/studio"
+            className="rounded-xl bg-indigo-600 px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-indigo-500"
+          >
+            Start free
+          </Link>
         </div>
         <div
           className="pointer-events-none absolute inset-x-0 bottom-6 text-center text-xs text-zinc-500 transition-opacity"

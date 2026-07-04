@@ -4,6 +4,7 @@ import Link from "next/link";
 import Counters from "@/components/landing/Counters";
 import PinnedTriplet from "@/components/landing/PinnedTriplet";
 import Pricing from "@/components/landing/Pricing";
+import Reveal from "@/components/landing/Reveal";
 import ScrollHero from "@/components/landing/ScrollHero";
 import shotEditor from "@/public/shots/studio-editor.png";
 import shotHero from "@/public/shots/studio-hero.png";
@@ -85,16 +86,18 @@ const FAQ = [
 export default function Home() {
   return (
     <div className="bg-zinc-950 text-zinc-100">
-      <nav className="absolute inset-x-0 top-0 z-40 mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-zinc-950/60 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
         <span className="text-sm font-bold tracking-tight text-white">
           Sketchcast <span className="font-normal text-zinc-500">Studio</span>
         </span>
-        <Link
-          href="/studio"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
-        >
-          Start free
-        </Link>
+          <Link
+            href="/studio"
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+          >
+            Start free
+          </Link>
+        </div>
       </nav>
 
       {/* Cinematic scroll-scrub hero: the studio assembles from particles */}
@@ -116,6 +119,7 @@ export default function Home() {
 
           {/* Product shot in a browser frame */}
           <section className="pb-16">
+            <Reveal>
             <div className="overflow-hidden rounded-2xl border border-zinc-200 shadow-2xl">
               <div className="flex items-center gap-2 border-b border-zinc-200 bg-zinc-100 px-4 py-2.5">
                 <span className="flex gap-1.5" aria-hidden>
@@ -138,9 +142,11 @@ export default function Home() {
               Mid-recording: the prompter carries you, the diagram tells the
               story, and only the board and your camera make the final cut.
             </p>
+            </Reveal>
           </section>
 
           <section className="grid gap-6 pb-16 md:grid-cols-2">
+            <Reveal>
             <figure>
               <div className="overflow-hidden rounded-xl border border-zinc-200 shadow-lg">
                 <Image
@@ -154,6 +160,8 @@ export default function Home() {
                 Stage diagrams in the tray, then drag them on while you record.
               </figcaption>
             </figure>
+            </Reveal>
+            <Reveal delay={140}>
             <figure>
               <div className="overflow-hidden rounded-xl border border-zinc-200 shadow-lg">
                 <Image
@@ -167,17 +175,17 @@ export default function Home() {
                 Cut flubs by the word and drop in action slides, right in the browser.
               </figcaption>
             </figure>
+            </Reveal>
           </section>
 
           <section className="grid gap-4 border-t border-zinc-200 py-16 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
-              >
-                <h3 className="text-sm font-semibold text-zinc-900">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{f.body}</p>
-              </div>
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={(i % 3) * 110}>
+                <div className="h-full rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold text-zinc-900">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-600">{f.body}</p>
+                </div>
+              </Reveal>
             ))}
           </section>
 
