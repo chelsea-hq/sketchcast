@@ -12,21 +12,30 @@ export default function TermsPage() {
           ← Sketchcast Studio
         </Link>
         <h1 className="text-2xl font-bold text-white">Terms of Service</h1>
-        <p className="text-zinc-500">Effective July 3, 2026 · Beta</p>
+        <p className="text-zinc-500">Effective July 11, 2026 · Beta</p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Beta software</h2>
         <p>
           Sketchcast Studio is free beta software provided as-is, without
           warranties of any kind. Features may change, break, or disappear
           while we build. Download takes you care about; recordings are not
-          stored by us and cannot be recovered by us.
+          recoverable by us. Locally stored takes can still be lost if browser
+          storage is cleared.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Your content</h2>
         <p>
           Everything you create with Sketchcast (recordings, boards, scripts,
-          exports) is yours. We claim no rights to it and, since it never
-          reaches our servers, we couldn’t use it if we wanted to.
+          exports) is yours. We claim no rights to it. If you choose cloud
+          sync, your browser encrypts project data before upload and we store
+          only ciphertext. Recordings are not included in cloud sync.
+        </p>
+
+        <h2 className="pt-2 text-base font-semibold text-white">Recovery codes</h2>
+        <p>
+          Your cloud-sync recovery code is the encryption key. We do not receive
+          or store it and cannot reset or recover it. Anyone who obtains the code
+          may be able to decrypt that cloud project, so keep it private.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Your API keys and costs</h2>

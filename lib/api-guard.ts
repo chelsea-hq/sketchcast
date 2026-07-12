@@ -40,6 +40,8 @@ export interface GuardOptions {
   maxBodyBytes?: number;
   /** Acceptable Content-Type prefixes; defaults to JSON only */
   allowedContentTypes?: string[];
+  /** Disable the content-type requirement for bodyless requests such as GET */
+  requireContentType?: boolean;
 }
 
 /**
@@ -85,7 +87,10 @@ export function guardApiRequest(
   // into a CORS preflight, which fails because these routes never send
   // CORS headers. It also matches what the UI actually sends.
   const contentType = (request.headers.get("content-type") ?? "").toLowerCase();
-  if (!allowedContentTypes.some((t) => contentType.startsWith(t))) {
+  if (
+    options.requireContentType !== false &&
+    !allowedContentTypes.some((t) => contentType.startsWith(t))
+  ) {
     return Response.json(
       { error: `Content-Type must be one of: ${allowedContentTypes.join(", ")}` },
       { status: 415 }

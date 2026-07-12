@@ -7,6 +7,7 @@ export interface Take {
   sizeMB: number;
   seconds: number;
   format: string;
+  persisted: boolean;
 }
 
 interface TakesPanelProps {
@@ -20,8 +21,8 @@ export default function TakesPanel({ takes, onDelete, onEdit }: TakesPanelProps)
     <div className="flex h-full flex-col gap-2 overflow-y-auto">
       {takes.length === 0 && (
         <p className="text-xs leading-relaxed text-zinc-500">
-          Finished recordings land here, ready to download and post. Nothing
-          leaves your browser: takes live locally until you save them.
+          Finished recordings land in the Recovery Vault here. They stay on
+          this device through refreshes and browser restarts until you delete them.
         </p>
       )}
       {takes.map((take) => (
@@ -33,6 +34,15 @@ export default function TakesPanel({ takes, onDelete, onEdit }: TakesPanelProps)
           <div className="flex items-center justify-between gap-2 text-[11px] text-zinc-400">
             <span className="tabular-nums">
               {take.format} · {Math.round(take.seconds)}s · {take.sizeMB.toFixed(1)}&nbsp;MB
+            </span>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
+                take.persisted
+                  ? "bg-emerald-500/10 text-emerald-400"
+                  : "bg-amber-500/10 text-amber-300"
+              }`}
+            >
+              {take.persisted ? "Recovered locally" : "Saving…"}
             </span>
             <div className="flex gap-1.5">
               <a

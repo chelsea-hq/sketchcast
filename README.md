@@ -10,6 +10,8 @@ Record whiteboard explainers with your webcam and a teleprompter, entirely in th
 - **Webcam bubble**: circular overlay, bottom-right by default. Click it to move corners, use the slider to resize. What you see on stage is exactly what lands in the export.
 - **Social copy**: generate hooks, titles, platform descriptions, and hashtags for the finished video. One click to copy each.
 - **Templates**: save the board, script, format, and webcam layout. Load it back for the next topic.
+- **Named projects + Recovery Vault**: every project keeps its own board, script, layout, and finished takes privately in IndexedDB, so a refresh or browser restart does not erase the session.
+- **Encrypted cloud sync**: optionally sync a project between devices with a recovery code. The browser encrypts the board, script, and layout before upload; video takes stay local.
 - **Images**: paste (Cmd+V), drag-drop, or use the board's image tool.
 
 ## Run it
@@ -36,8 +38,12 @@ SKETCHCAST_MODEL=claude-opus-4-8
 
 With `DEEPGRAM_API_KEY` set in `.env.local`, the take editor gains transcript editing: load a word-by-word transcript, click the first and last word of a flub to cut it, and remove filler words ("um", "uh") in one click. Costs about 2 cents per 5-minute video. Audio is extracted in the browser and sent to Deepgram only when you click "Load transcript"; without the key the manual cut buttons work as before.
 
+## Encrypted cloud sync (optional)
+
+Cloud sync uses a private Vercel Blob store and requires `BLOB_READ_WRITE_TOKEN` in `.env.local` and the Vercel deployment environments. The browser generates a 256-bit recovery code and encrypts project data with AES-GCM before sending it to `/api/sync`. The server stores ciphertext only and cannot recover a lost code. Sync includes the board, script, format, and webcam layout; recordings remain in the device's Recovery Vault.
+
 ## Notes
 
 - Recording uses MediaRecorder. Chrome and Edge export best (mp4 where supported, webm otherwise). Safari support varies.
-- Takes live in browser memory until you download them; nothing is uploaded anywhere. Download before closing the tab (the app warns you if you have undownloaded takes).
+- Takes and project drafts are kept in the browser's local Recovery Vault. Nothing is uploaded unless the user explicitly runs encrypted cloud sync; video takes are never part of sync. Browser storage can still be cleared by the user or operating system, so download final videos you care about.
 - Templates live in localStorage; very large pasted images can exceed the browser's storage quota.

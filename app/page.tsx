@@ -34,12 +34,16 @@ const FEATURES = [
     title: "Hooks + captions included",
     body: "AI writes your hooks, titles, and platform descriptions the moment the take is done.",
   },
+  {
+    title: "Projects that come back",
+    body: "Keep separate boards, scripts, layouts, and takes in a local Recovery Vault. Optional sync is encrypted before upload.",
+  },
 ];
 
 const FAQ = [
   {
     q: "Do my videos get uploaded anywhere?",
-    a: "No. Recording, editing, and export all happen in your browser. A take only leaves your machine when you download it and post it yourself. Audio is sent to Deepgram only if you click “Load transcript,” and only that audio.",
+    a: "No. Recording, editing, and export happen in your browser, and video takes stay in the local Recovery Vault. Audio is sent to Deepgram only if you click “Load transcript.” Optional cloud sync includes only an end-to-end encrypted board, script, and layout—never the video.",
   },
   {
     q: "Do I need my own API keys?",

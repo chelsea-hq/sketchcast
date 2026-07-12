@@ -12,33 +12,38 @@ export default function PrivacyPage() {
           ← Sketchcast Studio
         </Link>
         <h1 className="text-2xl font-bold text-white">Privacy Policy</h1>
-        <p className="text-zinc-500">Effective July 3, 2026 · Beta</p>
+        <p className="text-zinc-500">Effective July 11, 2026 · Beta</p>
 
         <h2 className="pt-2 text-base font-semibold text-white">The short version</h2>
         <p>
           Sketchcast runs in your browser. We don’t have user accounts, we
-          don’t run analytics or ad trackers, and we don’t store your videos,
-          scripts, templates, or API keys on our servers.
+          don’t run analytics or ad trackers, and we never store your videos or
+          API keys on our servers. Optional cloud sync stores only project data
+          encrypted in your browser with a recovery code that we do not know.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">What stays on your device</h2>
         <p>
-          Your recordings live in your browser’s memory until you download
-          them. Your saved templates and API keys live in your browser’s local
-          storage on your machine. None of these are transmitted to us for
-          storage.
+          Your named projects, recordings, saved templates, and API keys live
+          in browser storage on your machine. Recordings are kept in the local
+          Recovery Vault until you delete them or clear browser storage. Video
+          takes and API keys are never included in cloud sync.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">What leaves your device, and when</h2>
         <p>
-          Three features send data out, each only when you use it. (1) AI
+          Four features send data out, each only when you use it. (1) AI
           generation: when you generate a diagram or social copy, your concept
           text and script pass through our server to the AI provider you chose
           (Anthropic, OpenAI, OpenRouter, or Google), authenticated with your
           own API key. We forward your key with that request and do not store
           or log it. (2) Transcripts: when you click “Load transcript,” the
           audio of that take is sent through our server to Deepgram to be
-          transcribed, then discarded. (3) Hosting: our host (Vercel) keeps
+          transcribed, then discarded. (3) Encrypted cloud sync: when you click
+          Push, your browser encrypts the active project’s board, script,
+          format, and webcam layout using AES-GCM. Vercel Blob stores the
+          ciphertext. The recovery code never leaves your browser, and without
+          it neither we nor Vercel can read the project. (4) Hosting: our host (Vercel) keeps
           standard, short-lived request logs such as IP address and user
           agent, as virtually every website’s infrastructure does.
         </p>
