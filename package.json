@@ -8,7 +8,7 @@
     "url": "https://github.com/chelsea-hq/sketchcast.git"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",
