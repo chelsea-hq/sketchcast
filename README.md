@@ -1,10 +1,14 @@
 # Sketchcast Studio
 
+[![CI](https://github.com/chelsea-hq/sketchcast/actions/workflows/ci.yml/badge.svg)](https://github.com/chelsea-hq/sketchcast/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/chelsea-hq/sketchcast/actions/workflows/codeql.yml/badge.svg)](https://github.com/chelsea-hq/sketchcast/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Record whiteboard explainers with your webcam and a teleprompter, entirely in the browser. Type a concept, get a ready-made diagram on an Excalidraw board, drag the pieces around as you talk, and export a platform-ready video.
 
 ## What it does
 
-- **AI diagrams**: describe a concept in the Diagram AI tab and Claude turns it into a whiteboard layout (boxes, arrows, talk track). One click drops it onto the board where every piece stays draggable. Works offline with template diagrams when no API key is set.
+- **AI diagrams**: describe a concept in the Diagram AI tab and your selected provider turns it into a whiteboard layout (boxes, arrows, talk track). One click drops it onto the board where every piece stays draggable. Works offline with template diagrams when no API key is set.
 - **Recording**: the board and your webcam bubble are composited into one video at full export resolution. 16:9 (1920×1080), 9:16 (1080×1920), and 1:1 (1080×1080).
 - **Teleprompter**: your script scrolls over the stage while you record. Only you see it; it is never captured in the video.
 - **Webcam bubble**: circular overlay, bottom-right by default. Click it to move corners, use the slider to resize. What you see on stage is exactly what lands in the export.
@@ -100,6 +104,8 @@ npm run audit:release
 CI runs lint, tests, production build, and a high-or-critical dependency gate. CodeQL and Dependabot are configured under `.github/`.
 
 Security reports should follow [SECURITY.md](SECURITY.md). Please do not open a public issue for a suspected vulnerability.
+The [assessment remediation matrix](docs/SECURITY-ASSESSMENT-REMEDIATION.md)
+shows how the public-deployment findings are addressed and how to verify them.
 
 ## Contributing
 
