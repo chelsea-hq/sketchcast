@@ -8,9 +8,40 @@ function sanitizeLabel(text: string): string {
   return text.replace(/["\[\]{}()|]/g, "").trim().slice(0, 42);
 }
 
+function splitOnSeparators(concept: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+
+  const flush = () => {
+    if (current) parts.push(current);
+    current = "";
+  };
+
+  for (let index = 0; index < concept.length; index += 1) {
+    const character = concept[index];
+    const isAsciiArrow = character === "-" && concept[index + 1] === ">";
+    if (
+      character === "." ||
+      character === ";" ||
+      character === "!" ||
+      character === "?" ||
+      character === "," ||
+      character === "\n" ||
+      character === "→" ||
+      isAsciiArrow
+    ) {
+      flush();
+      if (isAsciiArrow) index += 1;
+    } else {
+      current += character;
+    }
+  }
+  flush();
+  return parts;
+}
+
 function splitIntoSteps(concept: string): string[] {
-  const parts = concept
-    .split(/(?:[.;!?\n]|,\s+then\s+|\s+then\s+|->|→)/i)
+  const parts = splitOnSeparators(concept)
     .map((p) => sanitizeLabel(p))
     .filter((p) => p.length > 2);
   if (parts.length >= 2) return parts.slice(0, 8);
