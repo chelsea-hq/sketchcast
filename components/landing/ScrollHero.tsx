@@ -230,7 +230,7 @@ export default function ScrollHero() {
               Start free
             </Link>
             <span className="text-xs text-zinc-500">
-              Free during beta · runs in your browser
+              Community stays free · runs in your browser
             </span>
           </div>
         </div>

@@ -27,6 +27,7 @@ interface SidePanelProps {
   onSaveTemplate: (name: string) => void;
   onLoadTemplate: (template: SketchTemplate) => void;
   onDeleteTemplate: (id: string) => void;
+  templateLimit: number | null;
   takes: Take[];
   onDeleteTake: (id: string) => void;
   onEditTake: (take: Take) => void;
@@ -146,6 +147,7 @@ export default function SidePanel(props: SidePanelProps) {
             onSave={props.onSaveTemplate}
             onLoad={props.onLoadTemplate}
             onDelete={props.onDeleteTemplate}
+            limit={props.templateLimit}
           />
         )}
         {tab === "takes" && (

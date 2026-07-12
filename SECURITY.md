@@ -20,7 +20,8 @@ five business days.
 
 - Sketchcast is local-first and bring-your-own-key by default.
 - Server-funded AI and transcription keys require the explicit
-  `SKETCHCAST_ALLOW_SERVER_KEYS=true` opt-in.
+  `SKETCHCAST_ALLOW_SERVER_KEYS=true` opt-in plus an authenticated active
+  Creator subscription and available durable per-user quota.
 - Cloud sync requires the explicit `SKETCHCAST_ENABLE_CLOUD_SYNC=true` opt-in,
   a private Blob store, and a durable platform rate limit.
 - Project sync is encrypted in the browser. The server stores ciphertext and a
@@ -28,6 +29,10 @@ five business days.
 - Video recordings stay in browser storage unless the user exports them.
 - Browser-persisted API keys are optional and should be used only on trusted
   personal devices.
+- Stripe webhook signatures are verified before subscription entitlements are
+  written. Checkout uses server-owned Price IDs, never browser-supplied amounts.
+- If Clerk, Stripe, or Upstash is incomplete, hosted entitlements fail closed
+  while the Community/BYOK product remains usable.
 
 The complete threat model and hosting guidance are in
 [docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md).

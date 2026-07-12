@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 
+import ClerkBoundary from "@/components/ClerkBoundary";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,8 +48,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        {children}
-        <Toaster theme="dark" richColors position="bottom-right" />
+        <ClerkBoundary>
+          {children}
+          <Toaster theme="dark" richColors position="bottom-right" />
+        </ClerkBoundary>
       </body>
     </html>
   );

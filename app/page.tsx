@@ -31,7 +31,7 @@ const FEATURES = [
     body: "Drop whiteboard-style title cards between takes without opening a video editor.",
   },
   {
-    title: "Hooks + captions included",
+    title: "Hooks + post copy included",
     body: "AI writes your hooks, titles, and platform descriptions the moment the take is done.",
   },
   {
@@ -47,7 +47,7 @@ const FAQ = [
   },
   {
     q: "Do I need my own API keys?",
-    a: "During the free beta, yes: paste a key from Anthropic, OpenAI, OpenRouter, or Google Gemini (diagrams, hooks, captions) and optionally a Deepgram key (transcripts) under ⚙ Keys. Keys are saved only in your browser and travel only inside your own requests to the AI providers; our server never stores or logs them. The planned Creator tier includes AI without any keys.",
+    a: "Not for the local studio. Without a key, built-in offline diagrams and copy keep working. You can paste a separate, spend-capped Anthropic, OpenAI, OpenRouter, Gemini, or Deepgram key under ⚙ Keys; it stays in session storage by default and our server does not persist or log it. Creator Cloud includes managed usage without your own keys.",
   },
   {
     q: "Which browsers work best?",
@@ -71,12 +71,10 @@ export default function Home() {
         <span className="text-sm font-bold tracking-tight text-white">
           Sketchcast <span className="font-normal text-zinc-500">Studio</span>
         </span>
-          <Link
-            href="/studio"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
-          >
-            Start free
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/account" className="rounded-lg px-3 py-2 text-sm font-semibold text-zinc-300 transition-colors hover:text-white">Account</Link>
+            <Link href="/studio" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">Start free</Link>
+          </div>
         </div>
       </nav>
 
@@ -172,9 +170,8 @@ export default function Home() {
               Be one of the first creators on Sketchcast
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-600">
-              Fresh out of the workshop and free while in beta. Record
-              something real, tell us what’s brilliant and what’s broken, and
-              shape what gets built next.
+              The Community edition is free and open source. Record something real,
+              tell us what’s brilliant and what’s broken, and help shape Creator Cloud.
             </p>
             <Link
               href="/studio"
@@ -223,7 +220,7 @@ export default function Home() {
           Start free
         </Link>
         <p className="mt-4 text-xs text-zinc-500">
-          Free during beta · bring your own AI keys · nothing to install
+          Community is free · optional bring-your-own keys · nothing to install
         </p>
       </section>
 
@@ -239,6 +236,9 @@ export default function Home() {
           <Link href="/terms" className="hover:text-zinc-400">
             Terms
           </Link>
+          <a href="https://github.com/chelsea-hq/sketchcast" className="hover:text-zinc-400">
+            GitHub
+          </a>
         </p>
       </footer>
     </div>

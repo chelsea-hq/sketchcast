@@ -12,14 +12,15 @@ export default function PrivacyPage() {
           ← Sketchcast Studio
         </Link>
         <h1 className="text-2xl font-bold text-white">Privacy Policy</h1>
-        <p className="text-zinc-500">Effective July 11, 2026 · Beta</p>
+        <p className="text-zinc-500">Effective July 12, 2026</p>
 
         <h2 className="pt-2 text-base font-semibold text-white">The short version</h2>
         <p>
-          Sketchcast runs in your browser. We don’t have user accounts, we
-          don’t run analytics or ad trackers, and we never store your videos or
-          API keys on our servers. Optional cloud sync stores only project data
-          encrypted in your browser with a recovery code that we do not know.
+          Sketchcast is local-first. We don’t run ad trackers, and we never
+          store your videos or API keys on our servers. Optional Creator Cloud
+          accounts store only the minimum account, billing, and usage metadata
+          needed to provide paid services. Cloud sync stores project data only
+          after it is encrypted in your browser with a recovery code we do not know.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">What stays on your device</h2>
@@ -32,12 +33,13 @@ export default function PrivacyPage() {
 
         <h2 className="pt-2 text-base font-semibold text-white">What leaves your device, and when</h2>
         <p>
-          Four features send data out, each only when you use it. (1) AI
+          Four product features send data out, each only when you use it. (1) AI
           generation: when you generate a diagram or social copy, your concept
           text and script pass through our server to the AI provider you chose
           (Anthropic, OpenAI, OpenRouter, or Google), authenticated with your
-          own API key. We forward your key with that request and do not store
-          or log it. (2) Transcripts: when you click “Load transcript,” the
+          own API key or the managed Creator Cloud allowance. We forward a
+          browser-supplied key with that request and do not store or log it.
+          (2) Transcripts: when you click “Load transcript,” the
           audio of that take is sent through our server to Deepgram to be
           transcribed, then discarded. (3) Encrypted cloud sync: when you click
           Push, your browser encrypts the active project’s board, script,
@@ -46,6 +48,16 @@ export default function PrivacyPage() {
           it neither we nor Vercel can read the project. (4) Hosting: our host (Vercel) keeps
           standard, short-lived request logs such as IP address and user
           agent, as virtually every website’s infrastructure does.
+        </p>
+
+        <h2 className="pt-2 text-base font-semibold text-white">Accounts and billing</h2>
+        <p>
+          If you create a Creator Cloud account, Clerk processes your identity
+          and session. Stripe processes checkout and payment details; Sketchcast
+          does not receive full card numbers. We store your Clerk user identifier,
+          Stripe customer and subscription identifiers, subscription status,
+          renewal date, and monthly AI/transcription counters in Upstash. We use
+          this data only to provide the account, enforce limits, and support billing.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Third-party AI providers</h2>
@@ -60,9 +72,8 @@ export default function PrivacyPage() {
 
         <h2 className="pt-2 text-base font-semibold text-white">Changes and contact</h2>
         <p>
-          We’ll update this page as the product evolves (for example, if
-          accounts or analytics are ever added, this policy will say so
-          first). Questions: easyroadup@gmail.com.
+          We’ll update this page as the product evolves. You can request account
+          deletion or ask privacy questions at easyroadup@gmail.com.
         </p>
       </div>
     </div>

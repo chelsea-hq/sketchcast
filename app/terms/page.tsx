@@ -12,11 +12,11 @@ export default function TermsPage() {
           ← Sketchcast Studio
         </Link>
         <h1 className="text-2xl font-bold text-white">Terms of Service</h1>
-        <p className="text-zinc-500">Effective July 11, 2026 · Beta</p>
+        <p className="text-zinc-500">Effective July 12, 2026</p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Beta software</h2>
         <p>
-          Sketchcast Studio is free beta software provided as-is, without
+          Sketchcast Community and Creator Cloud are pre-release software provided as-is, without
           warranties of any kind. Features may change, break, or disappear
           while we build. Download takes you care about; recordings are not
           recoverable by us. Locally stored takes can still be lost if browser
@@ -47,6 +47,17 @@ export default function TermsPage() {
           your provider’s console.
         </p>
 
+        <h2 className="pt-2 text-base font-semibold text-white">Creator Cloud billing</h2>
+        <p>
+          Paid subscriptions renew automatically at the interval and price shown
+          at checkout until canceled. You can cancel through the account billing
+          portal; access continues through the paid billing period unless Stripe
+          indicates otherwise. Managed usage allowances reset monthly and do not
+          roll over. Provider availability and reasonable limits may change as
+          costs and the product evolve; material changes will be disclosed before
+          they apply to a renewal.
+        </p>
+
         <h2 className="pt-2 text-base font-semibold text-white">Acceptable use</h2>
         <p>
           Don’t use Sketchcast to create content that’s illegal or that
@@ -59,14 +70,14 @@ export default function TermsPage() {
         <p>
           To the maximum extent permitted by law, Sketchcast and its creator
           are not liable for any indirect, incidental, or consequential
-          damages arising from use of the beta, including lost recordings or
+          damages arising from use of the service, including lost recordings or
           API costs. Total liability is limited to the amount you paid for the
-          service, which during the free beta is zero.
+          service during the twelve months before the claim.
         </p>
 
         <h2 className="pt-2 text-base font-semibold text-white">Changes and contact</h2>
         <p>
-          These terms may be updated as the product moves out of beta;
+          These terms may be updated as the product evolves;
           continued use after changes means acceptance. Questions:
           easyroadup@gmail.com.
         </p>

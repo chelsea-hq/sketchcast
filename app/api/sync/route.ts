@@ -1,6 +1,7 @@
 import { get, put } from "@vercel/blob";
 
 import { guardApiRequest } from "@/lib/api-guard";
+import { creatorEntitlement, syncRequiresCreator } from "@/lib/creator-cloud";
 import type { SyncEnvelope } from "@/lib/project-sync";
 import { validSyncWriteCapability } from "@/lib/sync-capability";
 
@@ -22,12 +23,26 @@ function configured(): boolean {
   );
 }
 
+async function paidSyncGuard(): Promise<Response | null> {
+  if (!syncRequiresCreator()) return null;
+  const entitlement = await creatorEntitlement();
+  if (!entitlement.userId) {
+    return Response.json({ error: "Sign in to use hosted encrypted sync" }, { status: 401 });
+  }
+  if (entitlement.plan !== "creator") {
+    return Response.json({ error: "Encrypted sync requires Creator Cloud" }, { status: 402 });
+  }
+  return null;
+}
+
 export async function GET(request: Request) {
   const guard = guardApiRequest(request, { requireContentType: false });
   if (guard) return guard;
   if (!configured()) {
     return Response.json({ error: "Cloud sync is not configured" }, { status: 503 });
   }
+  const paidGuard = await paidSyncGuard();
+  if (paidGuard) return paidGuard;
   const id = new URL(request.url).searchParams.get("id") ?? "";
   if (!ID_PATTERN.test(id)) {
     return Response.json({ error: "Invalid sync id" }, { status: 400 });
@@ -44,6 +59,8 @@ export async function PUT(request: Request) {
   if (!configured()) {
     return Response.json({ error: "Cloud sync is not configured" }, { status: 503 });
   }
+  const paidGuard = await paidSyncGuard();
+  if (paidGuard) return paidGuard;
   let body: { id?: string; envelope?: SyncEnvelope };
   try {
     body = (await request.json()) as { id?: string; envelope?: SyncEnvelope };

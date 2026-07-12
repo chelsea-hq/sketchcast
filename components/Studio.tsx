@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import Board from "./Board";
@@ -60,10 +61,12 @@ import {
   saveTemplate,
   type SketchTemplate,
 } from "@/lib/templates";
+import { useCreatorCloud } from "@/components/useCreatorCloud";
 
 const CORNER_ORDER: WebcamCorner[] = ["br", "bl", "tl", "tr"];
 
 export default function Studio() {
+  const { account } = useCreatorCloud();
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
   const [format, setFormat] = useState<FormatKey>("16:9");
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -456,6 +459,18 @@ export default function Studio() {
   };
 
   const handleSaveTemplate = (name: string) => {
+    if (
+      account.limits.templates !== null &&
+      templates.length >= account.limits.templates
+    ) {
+      toast.error("The free plan includes 3 layouts.", {
+        action: {
+          label: "View Creator",
+          onClick: () => { window.location.href = "/#pricing"; },
+        },
+      });
+      return;
+    }
     if (!api) {
       toast.error("The whiteboard is still loading…");
       return;
@@ -691,6 +706,26 @@ export default function Studio() {
 
   const activeProject = projects.find((project) => project.id === activeProjectId);
 
+  const handleOpenSync = () => {
+    if (account.syncRequiresCreator && account.plan !== "creator") {
+      toast.error(
+        account.signedIn
+          ? "Hosted encrypted sync is included with Creator Cloud."
+          : "Sign in to a Creator Cloud account to use hosted sync.",
+        {
+          action: {
+            label: account.signedIn ? "View plan" : "Sign in",
+            onClick: () => {
+              window.location.href = account.signedIn ? "/#pricing" : "/sign-in";
+            },
+          },
+        }
+      );
+      return;
+    }
+    setSyncOpen(true);
+  };
+
   return (
     <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100">
       <header className="flex items-center gap-3 border-b border-zinc-800 px-4 py-2.5">
@@ -712,9 +747,15 @@ export default function Studio() {
           onCreate={handleCreateProject}
           onRename={handleRenameProject}
           onDelete={handleDeleteProject}
-          onOpenSync={() => setSyncOpen(true)}
+          onOpenSync={handleOpenSync}
         />
         <div className="ml-auto flex items-center gap-3 text-[11px]">
+          <Link
+            href="/account"
+            className="hidden rounded-md bg-zinc-800 px-2.5 py-1.5 font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white sm:block"
+          >
+            {account.plan === "creator" ? "Creator account" : "Account"}
+          </Link>
           <span
             className={`hidden items-center gap-1.5 rounded-full px-2 py-1 sm:flex ${
               recoveryReady
@@ -786,6 +827,7 @@ export default function Studio() {
             onSaveTemplate={handleSaveTemplate}
             onLoadTemplate={handleLoadTemplate}
             onDeleteTemplate={handleDeleteTemplate}
+            templateLimit={account.limits.templates}
             takes={takes}
             onDeleteTake={handleDeleteTake}
             onEditTake={(take) => {

@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import type { Take } from "./panels/TakesPanel";
 import { extractWavFromTake } from "@/lib/audio-extract";
 import { apiKeyHeaders } from "@/lib/user-keys";
+import { getBrandKit, saveBrandKit } from "@/lib/brand-kit";
+import { useCreatorCloud } from "@/components/useCreatorCloud";
 import type { FormatKey } from "@/lib/formats";
 import {
   buildSequence,
@@ -42,6 +44,7 @@ const btn =
   "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40";
 
 export default function TakeEditor({ take, onClose, onExported }: TakeEditorProps) {
+  const { account } = useCreatorCloud();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cuts, setCuts] = useState<CutRegion[]>([]);
   const [slides, setSlides] = useState<ActionSlide[]>([]);
@@ -54,6 +57,7 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
   const [loadingWords, setLoadingWords] = useState(false);
   const [anchor, setAnchor] = useState<number | null>(null);
   const [selRange, setSelRange] = useState<[number, number] | null>(null);
+  const [brandKit, setBrandKit] = useState(() => getBrandKit());
 
   const now = () => videoRef.current?.currentTime ?? 0;
   const duration = take.seconds;
@@ -70,7 +74,7 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
       // 2-minute take at 16 kHz mono
       if (wav.size > 4_000_000) {
         toast.error(
-          "Transcripts are limited to takes of about 2 minutes during beta. Use the manual cut buttons for longer takes."
+          "Hosted transcripts are limited to takes of about 2 minutes. Use the manual cut buttons for longer takes."
         );
         return;
       }
@@ -81,7 +85,7 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
       });
       if (res.status === 501) {
         toast.info(
-          "Transcript editing needs a Deepgram key. Add one under ⚙ Keys in the studio header."
+          "Transcript editing needs a Deepgram key or Creator Cloud. Add a key under ⚙ Keys or view the hosted plan."
         );
         return;
       }
@@ -185,7 +189,13 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
     setSlides((prev) =>
       [
         ...prev,
-        { id: `slide_${Date.now()}`, at: now(), text, seconds: slideSeconds },
+        {
+          id: `slide_${Date.now()}`,
+          at: now(),
+          text,
+          seconds: slideSeconds,
+          brand: account.plan === "creator" ? saveBrandKit(brandKit) : undefined,
+        },
       ].sort((a, b) => a.at - b.at)
     );
     setSlideText("");
@@ -361,6 +371,19 @@ export default function TakeEditor({ take, onClose, onExported }: TakeEditorProp
             Insert at playhead
           </button>
         </div>
+
+        {account.plan === "creator" ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-2.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-300">Brand kit</span>
+            <input type="color" value={brandKit.accent} onChange={(event) => setBrandKit((current) => ({ ...current, accent: event.target.value }))} disabled={exporting} aria-label="Action slide accent color" className="h-7 w-9 cursor-pointer rounded border-0 bg-transparent" />
+            <input value={brandKit.signature} maxLength={50} onChange={(event) => setBrandKit((current) => ({ ...current, signature: event.target.value }))} placeholder="Brand or creator name" disabled={exporting} className="min-w-0 flex-1 rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:border-indigo-500 focus:outline-none" />
+            <span className="text-[11px] text-zinc-500">Applied to new action slides.</span>
+          </div>
+        ) : (
+          <p className="text-[11px] text-zinc-500">
+            Creator Cloud can save your accent color and signature on action slides.
+          </p>
+        )}
 
         {(cuts.length > 0 || slides.length > 0) && (
           <div className="space-y-1 rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5">

@@ -10,6 +10,7 @@ interface TemplatesPanelProps {
   onSave: (name: string) => void;
   onLoad: (template: SketchTemplate) => void;
   onDelete: (id: string) => void;
+  limit: number | null;
 }
 
 export default function TemplatesPanel({
@@ -17,6 +18,7 @@ export default function TemplatesPanel({
   onSave,
   onLoad,
   onDelete,
+  limit,
 }: TemplatesPanelProps) {
   const [name, setName] = useState("");
 
@@ -55,6 +57,11 @@ export default function TemplatesPanel({
         <p className="mt-1.5 text-[11px] leading-snug text-zinc-500">
           Captures the board, script, format, and webcam layout so you can
           reuse the same setup for a new topic.
+        </p>
+        <p className="mt-1 text-[11px] text-zinc-600">
+          {limit === null
+            ? `${templates.length} saved · unlimited with Creator Cloud`
+            : `${templates.length} of ${limit} free layouts used`}
         </p>
       </div>
 

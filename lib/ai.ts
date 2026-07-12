@@ -34,6 +34,15 @@ export function serverKeysEnabled(): boolean {
   return process.env.SKETCHCAST_ALLOW_SERVER_KEYS === "true";
 }
 
+/** Resolve a host-funded key only after the route has verified entitlement. */
+export function managedAiConfig(config: AiRequestConfig): AiRequestConfig | null {
+  if (!serverKeysEnabled()) return null;
+  const provider = PROVIDERS[config.provider];
+  const apiKey = process.env[provider.envKey]?.trim();
+  if (!apiKey) return null;
+  return { ...config, apiKey };
+}
+
 /** Keep provider error details out of logs when they echo key fragments */
 export function redactForLog(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
@@ -54,9 +63,7 @@ function stripFences(raw: string): string {
  */
 export async function generateStructured<T>(args: StructuredArgs): Promise<T> {
   if (args.provider === "anthropic") {
-    const key =
-      args.apiKey ||
-      (serverKeysEnabled() ? process.env.ANTHROPIC_API_KEY : undefined);
+    const key = args.apiKey;
     if (!key) throw new Error("No browser API key configured for Anthropic");
     const client = new Anthropic({ apiKey: key });
     const response = await client.messages.create({
@@ -75,9 +82,7 @@ export async function generateStructured<T>(args: StructuredArgs): Promise<T> {
   }
 
   const config = PROVIDERS[args.provider];
-  const key =
-    args.apiKey ||
-    (serverKeysEnabled() ? process.env[config.envKey] : undefined);
+  const key = args.apiKey;
   if (!key) throw new Error(`No API key configured for ${config.label}`);
 
   const response = await fetch(`${config.baseUrl}/chat/completions`, {

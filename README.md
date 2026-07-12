@@ -49,13 +49,35 @@ The browser generates a 256-bit recovery code and encrypts project data with AES
 
 See [Security Model](docs/SECURITY-MODEL.md) for the trust boundaries and safe hosting modes.
 
+## Creator Cloud (optional hosted business layer)
+
+The repository remains a complete MIT-licensed Community edition. The optional
+Creator Cloud layer adds Clerk accounts, Stripe subscriptions, durable Upstash
+entitlements and quotas, managed provider usage, protected encrypted sync,
+unlimited layouts, and branded action slides.
+
+Creator Cloud is fail-closed: if auth, billing, or quota storage is not fully
+configured, the Community studio keeps working but hosted checkout and funded
+services do not activate. See `.env.example` for the required variables. Before
+turning on funded provider keys in production:
+
+1. Configure Clerk, Stripe, and Upstash and set all production secrets.
+2. Create monthly and annual recurring Stripe Prices, plus the optional founding Price.
+3. Point a Stripe webhook at `/api/billing/webhook` for checkout and subscription events.
+4. Set `SKETCHCAST_ALLOW_SERVER_KEYS=true` and `SKETCHCAST_REQUIRE_SYNC_SUBSCRIPTION=true`.
+5. Keep the Vercel firewall limits enabled and add provider spend alerts.
+
+The checkout route selects server-owned Price IDs; it never accepts an amount or
+Price ID from the browser. Subscription state comes from verified Stripe webhooks,
+not client claims. Managed usage is reserved atomically in Upstash before provider calls.
+
 ## Safe deployment modes
 
 | Mode | Account required | Host-funded services | Recommended use |
 | --- | --- | --- | --- |
 | Local or self-hosted BYOK | No | None | Default public-repo experience |
 | Public BYOK deployment | No | Optional sync only | Add platform limits before enabling sync |
-| Hosted paid service | Yes | AI, transcription, or storage | Add authentication, durable limits, and quotas |
+| Hosted Creator Cloud | Yes | AI, transcription, and sync | Configure Clerk, Stripe webhooks, Upstash quotas, firewall, and spend alerts |
 
 Never commit `.env.local` or provider credentials. Copy `.env.example`, then enable only the services you intend to fund.
 

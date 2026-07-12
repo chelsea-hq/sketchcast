@@ -1,5 +1,7 @@
 import { redactForLog, serverKeysEnabled } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
+import { creatorEntitlement, reserveUsage } from "@/lib/creator-cloud";
+import { CREATOR_LIMITS } from "@/lib/creator-cloud-types";
 
 export const maxDuration = 120;
 
@@ -20,23 +22,46 @@ export async function POST(request: Request) {
   });
   if (blocked) return blocked;
 
-  // Bring-your-own-key: a browser-supplied key wins over the server env
-  const key =
-    request.headers.get("x-deepgram-key")?.trim() ||
-    (serverKeysEnabled() ? process.env.DEEPGRAM_API_KEY : undefined);
+  const audio = await request.arrayBuffer();
+  if (audio.byteLength === 0) {
+    return Response.json({ error: "Empty audio body" }, { status: 400 });
+  }
+
+  const browserKey = request.headers.get("x-deepgram-key")?.trim();
+  let key = browserKey;
+  if (!key && serverKeysEnabled() && process.env.DEEPGRAM_API_KEY) {
+    const entitlement = await creatorEntitlement();
+    if (entitlement.plan === "creator" && entitlement.userId) {
+      const view = new DataView(audio);
+      const byteRate = audio.byteLength >= 32 ? view.getUint32(28, true) : 0;
+      const dataBytes = audio.byteLength >= 44 ? view.getUint32(40, true) : 0;
+      const seconds = byteRate > 0 ? Math.ceil(dataBytes / byteRate) : 0;
+      if (seconds <= 0) {
+        return Response.json({ error: "Invalid WAV audio" }, { status: 400 });
+      }
+      const reservation = await reserveUsage(
+        entitlement.userId,
+        "transcriptionSeconds",
+        seconds,
+        CREATOR_LIMITS.transcriptionSeconds
+      );
+      if (!reservation.allowed) {
+        return Response.json(
+          { error: "Monthly transcription limit reached. Add your own Deepgram key to continue." },
+          { status: 429 }
+        );
+      }
+      key = process.env.DEEPGRAM_API_KEY;
+    }
+  }
   if (!key) {
     return Response.json(
       {
         error: "no_key",
-        message: "Add a Deepgram key under ⚙ Keys to enable transcripts",
+        message: "Add a Deepgram key or use a Creator Cloud account for transcripts",
       },
       { status: 501 }
     );
-  }
-
-  const audio = await request.arrayBuffer();
-  if (audio.byteLength === 0) {
-    return Response.json({ error: "Empty audio body" }, { status: 400 });
   }
 
   try {

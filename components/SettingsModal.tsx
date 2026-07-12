@@ -50,6 +50,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           selected provider; the server does not persist or log them. Create a
           separate key for Sketchcast and set a provider spend cap.
         </p>
+        <p className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3 text-xs leading-relaxed text-indigo-200">
+          Prefer no key setup? Creator Cloud includes managed AI and transcription.
+          You can still use your own keys anytime without counting against its quota.
+        </p>
 
         <div>
           <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-zinc-500">

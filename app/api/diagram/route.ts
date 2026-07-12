@@ -1,5 +1,12 @@
-import { generateStructured, readAiHeaders, redactForLog } from "@/lib/ai";
+import {
+  generateStructured,
+  managedAiConfig,
+  readAiHeaders,
+  redactForLog,
+} from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
+import { CREATOR_LIMITS } from "@/lib/creator-cloud-types";
+import { creatorEntitlement, reserveUsage } from "@/lib/creator-cloud";
 import { fallbackDiagram } from "@/lib/fallbacks";
 
 export const maxDuration = 60;
@@ -56,7 +63,31 @@ export async function POST(request: Request) {
   }
   if (concept.length > 2000) concept = concept.slice(0, 2000);
 
-  const ai = readAiHeaders(request);
+  let ai = readAiHeaders(request);
+  let source = ai.provider as string;
+  if (!ai.apiKey) {
+    const entitlement = await creatorEntitlement();
+    const managed = managedAiConfig(ai);
+    if (entitlement.plan === "creator" && entitlement.userId && managed) {
+      const reservation = await reserveUsage(
+        entitlement.userId,
+        "aiGenerations",
+        1,
+        CREATOR_LIMITS.aiGenerations
+      );
+      if (!reservation.allowed) {
+        return Response.json(
+          { error: "Monthly managed AI limit reached. Add your own key to keep creating." },
+          { status: 429 }
+        );
+      }
+      ai = managed;
+      source = "creator-cloud";
+    }
+  }
+  if (!ai.apiKey) {
+    return Response.json({ ...fallbackDiagram(concept), source: "offline" });
+  }
   try {
     const parsed = await generateStructured<{
       mermaid: string;
@@ -69,7 +100,7 @@ export async function POST(request: Request) {
       schema: SCHEMA,
       maxTokens: 2048,
     });
-    return Response.json({ ...parsed, source: ai.provider });
+    return Response.json({ ...parsed, source });
   } catch (error) {
     console.error("Diagram generation fell back to offline mode:", redactForLog(error));
     return Response.json({ ...fallbackDiagram(concept), source: "offline" });

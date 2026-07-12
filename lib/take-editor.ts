@@ -1,5 +1,6 @@
 import { FORMATS, type FormatKey } from "./formats";
 import { SessionRecorder } from "./recorder";
+import type { BrandKit } from "./brand-kit";
 
 export interface CutRegion {
   id: string;
@@ -13,11 +14,12 @@ export interface ActionSlide {
   at: number;
   text: string;
   seconds: number;
+  brand?: BrandKit;
 }
 
 export type SequenceItem =
   | { type: "clip"; start: number; end: number }
-  | { type: "slide"; text: string; seconds: number };
+  | { type: "slide"; text: string; seconds: number; brand?: BrandKit };
 
 /** Source ranges that survive after removing the cut regions. */
 export function keptRanges(
@@ -63,13 +65,13 @@ export function buildSequence(
       if (!slide) break;
       const splitAt = Math.max(slide.at, range.start);
       if (splitAt > cursor) items.push({ type: "clip", start: cursor, end: splitAt });
-      items.push({ type: "slide", text: slide.text, seconds: slide.seconds });
+      items.push({ type: "slide", text: slide.text, seconds: slide.seconds, brand: slide.brand });
       cursor = splitAt;
     }
     if (range.end > cursor) items.push({ type: "clip", start: cursor, end: range.end });
   }
   for (const slide of pending) {
-    items.push({ type: "slide", text: slide.text, seconds: slide.seconds });
+    items.push({ type: "slide", text: slide.text, seconds: slide.seconds, brand: slide.brand });
   }
   return items;
 }
@@ -107,7 +109,8 @@ function drawSlide(
   ctx: CanvasRenderingContext2D,
   text: string,
   W: number,
-  H: number
+  H: number,
+  brand?: BrandKit
 ): void {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
@@ -124,13 +127,20 @@ function drawSlide(
   });
   // Marker-style underline accent below the text block
   const underlineY = startY + lines.length * lineHeight * 0.85;
-  ctx.strokeStyle = "#6366f1";
+  ctx.strokeStyle = brand?.accent ?? "#6366f1";
   ctx.lineWidth = Math.max(3, fontSize * 0.08);
   ctx.lineCap = "round";
   ctx.beginPath();
   ctx.moveTo(W / 2 - W * 0.12, underlineY);
   ctx.quadraticCurveTo(W / 2, underlineY + fontSize * 0.18, W / 2 + W * 0.12, underlineY);
   ctx.stroke();
+  if (brand?.signature) {
+    ctx.font = `600 ${Math.max(18, Math.round(fontSize * 0.34))}px sans-serif`;
+    ctx.fillStyle = brand.accent;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(brand.signature, W * 0.94, H * 0.94);
+  }
 }
 
 function once(target: EventTarget, event: string): Promise<void> {
@@ -230,7 +240,7 @@ export async function exportEditedTake(options: {
     let emitted = 0;
     for (const item of sequence) {
       if (item.type === "slide") {
-        runDrawLoop(() => drawSlide(ctx, item.text, spec.width, spec.height));
+        runDrawLoop(() => drawSlide(ctx, item.text, spec.width, spec.height, item.brand));
         const base = emitted;
         const t0 = performance.now();
         while (performance.now() - t0 < item.seconds * 1000) {
