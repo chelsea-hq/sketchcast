@@ -29,6 +29,11 @@ interface StructuredArgs extends AiRequestConfig {
   maxTokens: number;
 }
 
+/** Shared host-funded keys are an explicit opt-in, never a public default. */
+export function serverKeysEnabled(): boolean {
+  return process.env.SKETCHCAST_ALLOW_SERVER_KEYS === "true";
+}
+
 /** Keep provider error details out of logs when they echo key fragments */
 export function redactForLog(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
@@ -49,7 +54,11 @@ function stripFences(raw: string): string {
  */
 export async function generateStructured<T>(args: StructuredArgs): Promise<T> {
   if (args.provider === "anthropic") {
-    const client = new Anthropic(args.apiKey ? { apiKey: args.apiKey } : {});
+    const key =
+      args.apiKey ||
+      (serverKeysEnabled() ? process.env.ANTHROPIC_API_KEY : undefined);
+    if (!key) throw new Error("No browser API key configured for Anthropic");
+    const client = new Anthropic({ apiKey: key });
     const response = await client.messages.create({
       model:
         args.model || process.env.SKETCHCAST_MODEL || PROVIDERS.anthropic.defaultModel,
@@ -66,7 +75,9 @@ export async function generateStructured<T>(args: StructuredArgs): Promise<T> {
   }
 
   const config = PROVIDERS[args.provider];
-  const key = args.apiKey || process.env[config.envKey];
+  const key =
+    args.apiKey ||
+    (serverKeysEnabled() ? process.env[config.envKey] : undefined);
   if (!key) throw new Error(`No API key configured for ${config.label}`);
 
   const response = await fetch(`${config.baseUrl}/chat/completions`, {

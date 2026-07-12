@@ -14,10 +14,10 @@ Record whiteboard explainers with your webcam and a teleprompter, entirely in th
 - **Encrypted cloud sync**: optionally sync a project between devices with a recovery code. The browser encrypts the board, script, and layout before upload; video takes stay local.
 - **Images**: paste (Cmd+V), drag-drop, or use the board's image tool.
 
-## Run it
+## Quick start
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -25,22 +25,58 @@ Open http://localhost:3000, click "Start session · camera + mic", and record.
 
 ## API keys (bring your own)
 
-Users paste their own keys via the **⚙ Keys** button in the studio header; keys are stored only in their browser. For your own machine you can also put keys in `.env.local` as a server-side default:
+Users paste their own keys through the **Keys** button in the studio header. Keys use session storage by default, so closing the browser session clears them. Persistent browser storage is an explicit opt-in for trusted personal devices.
+
+For a private local installation, you can opt into server-side defaults in `.env.local`:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-…
+SKETCHCAST_ALLOW_SERVER_KEYS=true
+ANTHROPIC_API_KEY=your-key
 SKETCHCAST_MODEL=claude-opus-4-8
 ```
 
-`SKETCHCAST_MODEL` accepts any Claude model id; drop it to `claude-haiku-4-5` for cheaper generations.
+Server-funded keys are disabled by default. Do not enable them on a public deployment without authentication, durable rate limits, and per-user quotas.
 
 ## Deepgram key (optional, unlocks transcript editing)
 
-With `DEEPGRAM_API_KEY` set in `.env.local`, the take editor gains transcript editing: load a word-by-word transcript, click the first and last word of a flub to cut it, and remove filler words ("um", "uh") in one click. Costs about 2 cents per 5-minute video. Audio is extracted in the browser and sent to Deepgram only when you click "Load transcript"; without the key the manual cut buttons work as before.
+Add a Deepgram key in the studio to enable transcript editing. For a private local installation, `DEEPGRAM_API_KEY` can be used only when `SKETCHCAST_ALLOW_SERVER_KEYS=true`. Audio is extracted in the browser and sent to Deepgram only when you select **Load transcript**. Without a key, manual cut controls continue to work.
 
 ## Encrypted cloud sync (optional)
 
-Cloud sync uses a private Vercel Blob store and requires `BLOB_READ_WRITE_TOKEN` in `.env.local` and the Vercel deployment environments. The browser generates a 256-bit recovery code and encrypts project data with AES-GCM before sending it to `/api/sync`. The server stores ciphertext only and cannot recover a lost code. Sync includes the board, script, format, and webcam layout; recordings remain in the device's Recovery Vault.
+Cloud sync is disabled by default. To self-host it, set `SKETCHCAST_ENABLE_CLOUD_SYNC=true`, connect a private Vercel Blob store, and add a durable platform rate limit for `/api/sync`.
+
+The browser generates a 256-bit recovery code and encrypts project data with AES-GCM before upload. Writes also require a separate capability derived from that code, so knowing a storage lookup id is not enough to overwrite a project. The server stores ciphertext only and cannot recover a lost code. Sync includes the board, script, format, and webcam layout. Recordings remain in the device's Recovery Vault.
+
+See [Security Model](docs/SECURITY-MODEL.md) for the trust boundaries and safe hosting modes.
+
+## Safe deployment modes
+
+| Mode | Account required | Host-funded services | Recommended use |
+| --- | --- | --- | --- |
+| Local or self-hosted BYOK | No | None | Default public-repo experience |
+| Public BYOK deployment | No | Optional sync only | Add platform limits before enabling sync |
+| Hosted paid service | Yes | AI, transcription, or storage | Add authentication, durable limits, and quotas |
+
+Never commit `.env.local` or provider credentials. Copy `.env.example`, then enable only the services you intend to fund.
+
+## Customize it with Codex or Claude Code
+
+Sketchcast is the working product. The optional [Sketchcast Customizer skill](skills/sketchcast-customizer/SKILL.md) helps an agent safely turn a fork into a branded creator dashboard without weakening the secure defaults. The companion [customization guide](docs/CUSTOMIZATION.md) includes starter prompts and the files agents should touch.
+
+## Quality and security checks
+
+```bash
+npm run check
+npm run audit:release
+```
+
+CI runs lint, tests, production build, and a high-or-critical dependency gate. CodeQL and Dependabot are configured under `.github/`.
+
+Security reports should follow [SECURITY.md](SECURITY.md). Please do not open a public issue for a suspected vulnerability.
+
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md) before opening a pull request.
 
 ## Notes
 

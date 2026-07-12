@@ -1,0 +1,42 @@
+name: Bug report
+description: Report a reproducible Sketchcast problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include API keys, recovery codes, recordings, or private data.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open... 2. Select... 3. See..."
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      options:
+        - Landing page
+        - Board or diagrams
+        - Recording
+        - Take editor or export
+        - API keys or providers
+        - Encrypted sync
+        - Other
+    validations:
+      required: true

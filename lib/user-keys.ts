@@ -1,7 +1,7 @@
 /**
- * Bring-your-own-key storage. Keys live only in this browser's
- * localStorage and ride along on same-origin API calls as headers;
- * the server never stores them.
+ * Bring-your-own-key storage. Keys use sessionStorage by default and ride
+ * along on same-origin API calls as headers. Persistent localStorage is an
+ * explicit user choice. The server never stores them.
  */
 
 import { PROVIDER_IDS, type ProviderId } from "./providers";
@@ -27,7 +27,9 @@ const EMPTY: UserKeys = {
 export function getUserKeys(): UserKeys {
   if (typeof window === "undefined") return { ...EMPTY, keys: { ...EMPTY.keys } };
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw =
+      window.sessionStorage.getItem(STORAGE_KEY) ??
+      window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<UserKeys>;
       const keys = { ...EMPTY.keys };
@@ -69,7 +71,25 @@ export function setUserKeys(keys: UserKeys): void {
     model: keys.model.trim(),
     deepgram: keys.deepgram.trim(),
   };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+}
+
+export function userKeysArePersistent(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.localStorage.getItem(STORAGE_KEY) !== null
+  );
+}
+
+export function setUserKeyPersistence(persist: boolean): void {
+  if (typeof window === "undefined") return;
+  const sessionValue = window.sessionStorage.getItem(STORAGE_KEY);
+  if (persist && sessionValue) {
+    window.localStorage.setItem(STORAGE_KEY, sessionValue);
+  } else {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_KEY);
+  }
 }
 
 /** Headers to attach to API calls so the server uses the user's keys */

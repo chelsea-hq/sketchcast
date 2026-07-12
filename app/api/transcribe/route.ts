@@ -1,4 +1,4 @@
-import { redactForLog } from "@/lib/ai";
+import { redactForLog, serverKeysEnabled } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
 
 export const maxDuration = 120;
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   // Bring-your-own-key: a browser-supplied key wins over the server env
   const key =
     request.headers.get("x-deepgram-key")?.trim() ||
-    process.env.DEEPGRAM_API_KEY;
+    (serverKeysEnabled() ? process.env.DEEPGRAM_API_KEY : undefined);
   if (!key) {
     return Response.json(
       {

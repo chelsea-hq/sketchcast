@@ -32,15 +32,46 @@ function arrayBuffer(bytes: Uint8Array): ArrayBuffer {
   ) as ArrayBuffer;
 }
 
-async function keyMaterial(syncCode: string): Promise<{ id: string; key: CryptoKey }> {
+function concatBytes(left: Uint8Array, right: Uint8Array): Uint8Array {
+  const joined = new Uint8Array(left.byteLength + right.byteLength);
+  joined.set(left, 0);
+  joined.set(right, left.byteLength);
+  return joined;
+}
+
+function hex(bytes: Uint8Array): string {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", arrayBuffer(bytes)));
+}
+
+interface SyncKeyMaterial {
+  id: string;
+  legacyId: string;
+  key: CryptoKey;
+  writeToken: string;
+}
+
+async function keyMaterial(syncCode: string): Promise<SyncKeyMaterial> {
   const secret = base64UrlToBytes(syncCode.trim());
   if (secret.byteLength !== 32) throw new Error("That recovery code is not valid");
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", arrayBuffer(secret)));
+  const digest = await sha256(secret);
+  const writeTokenBytes = await sha256(
+    concatBytes(new TextEncoder().encode("sketchcast-sync-write-v1:"), secret)
+  );
+  const idBytes = await sha256(writeTokenBytes);
   const key = await crypto.subtle.importKey("raw", arrayBuffer(digest), { name: "AES-GCM" }, false, [
     "encrypt",
     "decrypt",
   ]);
-  return { id: Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join(""), key };
+  return {
+    id: hex(idBytes),
+    legacyId: hex(digest),
+    key,
+    writeToken: bytesToBase64Url(writeTokenBytes),
+  };
 }
 
 export function generateSyncCode(): string {
@@ -106,4 +137,14 @@ export async function decryptProject(
 
 export async function syncIdFromCode(syncCode: string): Promise<string> {
   return (await keyMaterial(syncCode)).id;
+}
+
+/** Previous releases used the encryption-key digest as the lookup id. */
+export async function legacySyncIdFromCode(syncCode: string): Promise<string> {
+  return (await keyMaterial(syncCode)).legacyId;
+}
+
+/** A write-only capability. It cannot decrypt the encrypted project. */
+export async function syncWriteTokenFromCode(syncCode: string): Promise<string> {
+  return (await keyMaterial(syncCode)).writeToken;
 }

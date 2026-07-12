@@ -4,7 +4,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { PROVIDERS, PROVIDER_IDS, type ProviderId } from "@/lib/providers";
-import { getUserKeys, setUserKeys } from "@/lib/user-keys";
+import {
+  getUserKeys,
+  setUserKeyPersistence,
+  setUserKeys,
+  userKeysArePersistent,
+} from "@/lib/user-keys";
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -12,11 +17,17 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ onClose }: SettingsModalProps) {
   const [keys, setKeys] = useState(() => getUserKeys());
+  const [persistKeys, setPersistKeys] = useState(() => userKeysArePersistent());
   const active = PROVIDERS[keys.provider];
 
   const save = () => {
     setUserKeys(keys);
-    toast.success("Keys saved in this browser");
+    setUserKeyPersistence(persistKeys);
+    toast.success(
+      persistKeys
+        ? "Keys saved on this device"
+        : "Keys saved for this browser session"
+    );
     onClose();
   };
 
@@ -34,10 +45,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           </button>
         </div>
         <p className="text-xs leading-relaxed text-zinc-400">
-          Bring your own keys. They’re stored only in this browser and travel
-          only inside your own requests to the AI providers; the server never
-          stores or logs them. Tip: create a separate key just for Sketchcast
-          and set a spend cap in your provider’s console.
+          Bring your own keys. By default they stay only for this browser
+          session. They travel through the same-origin Sketchcast API to your
+          selected provider; the server does not persist or log them. Create a
+          separate key for Sketchcast and set a provider spend cap.
         </p>
 
         <div>
@@ -116,6 +127,23 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
             click-a-word cutting and filler-word removal in the take editor.
           </p>
         </div>
+
+        <label className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <input
+            type="checkbox"
+            checked={persistKeys}
+            onChange={(event) => setPersistKeys(event.target.checked)}
+            className="mt-0.5 size-4 accent-indigo-500"
+          />
+          <span className="text-xs leading-relaxed text-zinc-300">
+            <span className="block font-semibold text-amber-200">
+              Remember keys on this device
+            </span>
+            Off is safer. Turn this on only for a trusted personal browser.
+            Persistent browser keys can be exposed by malicious extensions or
+            a future cross-site scripting bug.
+          </span>
+        </label>
 
         <button
           type="button"

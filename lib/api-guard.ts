@@ -1,7 +1,7 @@
 /**
- * Server-side guard shared by the API routes that spend Anthropic API
- * credits. The routes are intentionally unauthenticated (local,
- * single-user tool), so this closes the cheap abuse paths:
+ * Server-side guard shared by API routes. Public deployments default to
+ * browser-supplied keys and disabled cloud sync, so this closes common abuse
+ * paths without pretending to be authentication:
  *
  * 1. Cross-site browser calls. A malicious page open in the same browser
  *    can fire "simple" POSTs at http://localhost:3000 while the dev server
@@ -10,8 +10,8 @@
  * 2. Oversized bodies buffered by request.json().
  * 3. Scripted request floods (fixed-window, per-client rate limit).
  *
- * Note before any public deployment: this is abuse hardening, not auth.
- * Deploying these routes publicly still needs a real authentication layer.
+ * In-memory limits are only a local backstop. Any shared paid feature also
+ * needs a durable platform rate limit, quotas, and usually authentication.
  */
 
 const WINDOW_MS = 60_000;
@@ -102,8 +102,8 @@ export function guardApiRequest(
     return Response.json({ error: "Request body too large" }, { status: 413 });
   }
 
-  // Fixed-window rate limits so a stuck loop or a script cannot drain the
-  // Anthropic account. In-memory is fine for a single-process local app.
+  // Fixed-window rate limits so a stuck loop or a script cannot create an
+  // unbounded burst. In-memory is useful for a single-process local app.
   // The global window is the real backstop: it holds no matter how many
   // distinct client keys a flood invents via header rotation.
   const now = Date.now();

@@ -49,7 +49,9 @@ import {
   decryptProject,
   encryptProject,
   generateSyncCode,
+  legacySyncIdFromCode,
   syncIdFromCode,
+  syncWriteTokenFromCode,
   type SyncEnvelope,
 } from "@/lib/project-sync";
 import {
@@ -618,9 +620,13 @@ export default function Studio() {
       const syncCode = saved.syncCode ?? generateSyncCode();
       const projectWithCode = { ...saved, syncCode };
       const { id, envelope } = await encryptProject(projectWithCode, syncCode);
+      const writeToken = await syncWriteTokenFromCode(syncCode);
       const response = await fetch("/api/sync", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-sync-write-token": writeToken,
+        },
         body: JSON.stringify({ id, envelope }),
       });
       const data = (await response.json()) as { error?: string; syncedAt?: string };
@@ -642,9 +648,16 @@ export default function Studio() {
   const handlePullSync = async (syncCode: string) => {
     try {
       const id = await syncIdFromCode(syncCode);
-      const response = await fetch(`/api/sync?id=${encodeURIComponent(id)}`, {
+      let response = await fetch(`/api/sync?id=${encodeURIComponent(id)}`, {
         cache: "no-store",
       });
+      // Compatibility for projects uploaded before write capabilities shipped.
+      if (response.status === 404) {
+        const legacyId = await legacySyncIdFromCode(syncCode);
+        response = await fetch(`/api/sync?id=${encodeURIComponent(legacyId)}`, {
+          cache: "no-store",
+        });
+      }
       const data = (await response.json()) as { error?: string; envelope?: SyncEnvelope };
       if (!response.ok || !data.envelope) {
         throw new Error(data.error ?? "Cloud project not found");
