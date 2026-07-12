@@ -67,9 +67,14 @@ turning on funded provider keys in production:
 4. Set `SKETCHCAST_ALLOW_SERVER_KEYS=true` and `SKETCHCAST_REQUIRE_SYNC_SUBSCRIPTION=true`.
 5. Keep the Vercel firewall limits enabled and add provider spend alerts.
 
+Follow the full [Creator Cloud setup and verification checklist](docs/CREATOR-CLOUD-SETUP.md)
+before switching Stripe or provider keys to live mode.
+
 The checkout route selects server-owned Price IDs; it never accepts an amount or
 Price ID from the browser. Subscription state comes from verified Stripe webhooks,
 not client claims. Managed usage is reserved atomically in Upstash before provider calls.
+The same atomic operation enforces both the account allowance and a host-wide
+monthly ceiling, so creating many accounts cannot bypass the deployment's cost cap.
 
 ## Safe deployment modes
 

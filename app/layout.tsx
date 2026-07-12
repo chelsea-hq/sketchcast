@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { connection } from "next/server";
 import { Toaster } from "sonner";
 
 import ClerkBoundary from "@/components/ClerkBoundary";
@@ -37,11 +38,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // A fresh request is required so Proxy's CSP nonce can be attached to every
+  // framework and page script. Static HTML cannot contain a per-request nonce.
+  await connection();
+
   return (
     <html
       lang="en"

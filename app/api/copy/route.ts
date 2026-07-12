@@ -8,6 +8,7 @@ import { guardApiRequest } from "@/lib/api-guard";
 import { CREATOR_LIMITS } from "@/lib/creator-cloud-types";
 import { creatorEntitlement, reserveUsage } from "@/lib/creator-cloud";
 import { fallbackCopy, type SocialCopy } from "@/lib/fallbacks";
+import { readJsonLimited, RequestBodyTooLargeError } from "@/lib/request-body";
 
 export const maxDuration = 60;
 
@@ -43,10 +44,16 @@ export async function POST(request: Request) {
   let concept = "";
   let script = "";
   try {
-    const body = (await request.json()) as { concept?: string; script?: string };
+    const body = await readJsonLimited<{ concept?: string; script?: string }>(
+      request,
+      64 * 1024
+    );
     concept = (body.concept ?? "").trim();
     script = (body.script ?? "").trim();
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return Response.json({ error: error.message }, { status: 413 });
+    }
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
   if (!concept) {
@@ -71,7 +78,12 @@ export async function POST(request: Request) {
       );
       if (!reservation.allowed) {
         return Response.json(
-          { error: "Monthly managed AI limit reached. Add your own key to keep creating." },
+          {
+            error:
+              reservation.reason === "global"
+                ? "Creator Cloud reached its monthly managed AI capacity. Add your own key to keep creating."
+                : "Monthly managed AI limit reached. Add your own key to keep creating.",
+          },
           { status: 429 }
         );
       }

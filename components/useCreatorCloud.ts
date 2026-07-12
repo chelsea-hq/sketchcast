@@ -10,6 +10,7 @@ import {
 const DEFAULT_ACCOUNT: CreatorCloudAccount = {
   authConfigured: false,
   billingConfigured: false,
+  foundingOfferAvailable: false,
   cloudConfigured: false,
   syncRequiresCreator: false,
   signedIn: false,

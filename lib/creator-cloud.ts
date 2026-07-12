@@ -11,6 +11,7 @@ import {
   type SketchcastPlan,
 } from "./creator-cloud-types";
 import { isActiveSubscription } from "./entitlements";
+import { configuredAppUrl } from "./app-url";
 
 export interface SubscriptionRecord {
   userId: string;
@@ -39,7 +40,8 @@ export function billingConfigured(): boolean {
     process.env.STRIPE_SECRET_KEY &&
       process.env.STRIPE_WEBHOOK_SECRET &&
       process.env.STRIPE_PRICE_CREATOR_MONTHLY &&
-      process.env.STRIPE_PRICE_CREATOR_ANNUAL
+      process.env.STRIPE_PRICE_CREATOR_ANNUAL &&
+      configuredAppUrl()
   );
 }
 
@@ -64,8 +66,30 @@ function customerKey(customerId: string): string {
   return `sketchcast:customer:${customerId}`;
 }
 
+function subscriptionEventKey(userId: string): string {
+  return `sketchcast:subscription-event:${userId}`;
+}
+
 function usageKey(userId: string, now = new Date()): string {
   return `sketchcast:usage:${userId}:${now.toISOString().slice(0, 7)}`;
+}
+
+function globalUsageKey(now = new Date()): string {
+  return `sketchcast:usage:global:${now.toISOString().slice(0, 7)}`;
+}
+
+function positiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function globalUsageLimit(metric: UsageMetric): number {
+  return metric === "aiGenerations"
+    ? positiveInteger(process.env.SKETCHCAST_GLOBAL_AI_MONTHLY_LIMIT, 5_000)
+    : positiveInteger(
+        process.env.SKETCHCAST_GLOBAL_TRANSCRIPTION_SECONDS_MONTHLY_LIMIT,
+        100 * 60 * 60
+      );
 }
 
 export async function getSubscription(
@@ -79,17 +103,31 @@ export async function getSubscription(
 export async function saveSubscription(record: SubscriptionRecord): Promise<void> {
   const store = redis();
   if (!store) throw new Error("Creator Cloud storage is not configured");
-  const existing = await getSubscription(record.userId);
-  if (
-    existing?.stripeEventCreated &&
-    existing.stripeEventCreated > record.stripeEventCreated
-  ) {
-    return;
+  const result = await store.eval<
+    [string, string, number],
+    number
+  >(
+    `
+local currentEvent = tonumber(redis.call("GET", KEYS[3]) or "0")
+local incomingEvent = tonumber(ARGV[3])
+if currentEvent > incomingEvent then
+  return 0
+end
+redis.call("SET", KEYS[1], ARGV[1])
+redis.call("SET", KEYS[2], ARGV[2])
+redis.call("SET", KEYS[3], incomingEvent)
+return 1
+`,
+    [
+      subscriptionKey(record.userId),
+      customerKey(record.stripeCustomerId),
+      subscriptionEventKey(record.userId),
+    ],
+    [JSON.stringify(record), record.userId, record.stripeEventCreated]
+  );
+  if (result === 0) {
+    console.warn(`Ignored out-of-order Stripe event for ${record.userId}`);
   }
-  await Promise.all([
-    store.set(subscriptionKey(record.userId), record),
-    store.set(customerKey(record.stripeCustomerId), record.userId),
-  ]);
 }
 
 export async function userIdForCustomer(customerId: string): Promise<string | null> {
@@ -130,14 +168,21 @@ export async function getUsage(userId: string): Promise<CreatorCloudUsage> {
 
 const RESERVE_USAGE_SCRIPT = `
 local current = tonumber(redis.call("HGET", KEYS[1], ARGV[1]) or "0")
+local globalCurrent = tonumber(redis.call("HGET", KEYS[2], ARGV[1]) or "0")
 local amount = tonumber(ARGV[2])
 local limit = tonumber(ARGV[3])
+local globalLimit = tonumber(ARGV[4])
 if current + amount > limit then
-  return {0, current}
+  return {0, current, globalCurrent, 1}
+end
+if globalCurrent + amount > globalLimit then
+  return {0, current, globalCurrent, 2}
 end
 local next = redis.call("HINCRBY", KEYS[1], ARGV[1], amount)
-redis.call("EXPIRE", KEYS[1], tonumber(ARGV[4]))
-return {1, next}
+local globalNext = redis.call("HINCRBY", KEYS[2], ARGV[1], amount)
+redis.call("EXPIRE", KEYS[1], tonumber(ARGV[5]))
+redis.call("EXPIRE", KEYS[2], tonumber(ARGV[5]))
+return {1, next, globalNext, 0}
 `;
 
 export async function reserveUsage(
@@ -145,19 +190,38 @@ export async function reserveUsage(
   metric: UsageMetric,
   amount: number,
   limit: number
-): Promise<{ allowed: boolean; used: number }> {
+): Promise<{
+  allowed: boolean;
+  used: number;
+  globalUsed: number;
+  reason: "user" | "global" | "store" | null;
+}> {
   const store = redis();
-  if (!store) return { allowed: false, used: 0 };
+  if (!store) {
+    return { allowed: false, used: 0, globalUsed: 0, reason: "store" };
+  }
   const safeAmount = Math.max(1, Math.ceil(amount));
   const result = await store.eval<
-    [string, number, number, number],
-    [number, number]
+    [string, number, number, number, number],
+    [number, number, number, number]
   >(
     RESERVE_USAGE_SCRIPT,
-    [usageKey(userId)],
-    [metric, safeAmount, limit, 40 * 24 * 60 * 60]
+    [usageKey(userId), globalUsageKey()],
+    [
+      metric,
+      safeAmount,
+      limit,
+      globalUsageLimit(metric),
+      40 * 24 * 60 * 60,
+    ]
   );
-  return { allowed: result[0] === 1, used: Number(result[1]) };
+  const reason = result[3] === 1 ? "user" : result[3] === 2 ? "global" : null;
+  return {
+    allowed: result[0] === 1,
+    used: Number(result[1]),
+    globalUsed: Number(result[2]),
+    reason,
+  };
 }
 
 export async function creatorEntitlement(): Promise<{
@@ -182,6 +246,7 @@ export async function accountSummary(): Promise<CreatorCloudAccount> {
   return {
     authConfigured: authConfigured(),
     billingConfigured: billingConfigured(),
+    foundingOfferAvailable: Boolean(process.env.STRIPE_PRICE_FOUNDING_ANNUAL),
     cloudConfigured: cloudStoreConfigured(),
     syncRequiresCreator: syncRequiresCreator(),
     signedIn: Boolean(userId),

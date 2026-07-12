@@ -3,11 +3,20 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { useCreatorCloud } from "./useCreatorCloud";
-import type { BillingInterval } from "@/lib/creator-cloud-types";
+import type {
+  BillingInterval,
+  CreatorCloudAccount,
+} from "@/lib/creator-cloud-types";
 
-export default function SubscribeButton({ interval }: { interval: BillingInterval }) {
-  const { account, loading } = useCreatorCloud();
+export default function SubscribeButton({
+  interval,
+  account,
+  loading,
+}: {
+  interval: BillingInterval;
+  account: CreatorCloudAccount;
+  loading: boolean;
+}) {
   const [working, setWorking] = useState(false);
   const ready =
     account.authConfigured && account.billingConfigured && account.cloudConfigured;

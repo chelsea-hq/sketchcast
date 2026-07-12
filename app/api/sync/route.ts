@@ -4,6 +4,7 @@ import { guardApiRequest } from "@/lib/api-guard";
 import { creatorEntitlement, syncRequiresCreator } from "@/lib/creator-cloud";
 import type { SyncEnvelope } from "@/lib/project-sync";
 import { validSyncWriteCapability } from "@/lib/sync-capability";
+import { readJsonLimited, RequestBodyTooLargeError } from "@/lib/request-body";
 
 export const maxDuration = 30;
 
@@ -63,8 +64,14 @@ export async function PUT(request: Request) {
   if (paidGuard) return paidGuard;
   let body: { id?: string; envelope?: SyncEnvelope };
   try {
-    body = (await request.json()) as { id?: string; envelope?: SyncEnvelope };
-  } catch {
+    body = await readJsonLimited<{ id?: string; envelope?: SyncEnvelope }>(
+      request,
+      MAX_SYNC_BYTES
+    );
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return Response.json({ error: error.message }, { status: 413 });
+    }
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
   if (!body.id || !ID_PATTERN.test(body.id) || body.envelope?.version !== 1) {

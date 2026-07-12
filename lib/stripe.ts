@@ -3,6 +3,7 @@ import "server-only";
 import Stripe from "stripe";
 
 import type { BillingInterval } from "./creator-cloud-types";
+import { configuredAppUrl } from "./app-url";
 
 let stripeClient: Stripe | null = null;
 
@@ -20,8 +21,13 @@ export function priceForInterval(interval: BillingInterval): string | null {
 }
 
 export function appUrl(request?: Request): string {
-  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  const configured = configuredAppUrl();
   if (configured) return configured;
-  if (request) return new URL(request.url).origin;
+  if (process.env.NODE_ENV !== "production" && request) {
+    return new URL(request.url).origin;
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("NEXT_PUBLIC_APP_URL must be a valid HTTPS origin");
+  }
   return "http://localhost:3000";
 }

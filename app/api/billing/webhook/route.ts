@@ -6,6 +6,7 @@ import {
   type SubscriptionRecord,
 } from "@/lib/creator-cloud";
 import { stripe } from "@/lib/stripe";
+import { readTextLimited, RequestBodyTooLargeError } from "@/lib/request-body";
 
 function objectId(value: string | { id: string } | null): string | null {
   return typeof value === "string" ? value : value?.id ?? null;
@@ -55,8 +56,12 @@ export async function POST(request: Request) {
 
   let event: Stripe.Event;
   try {
-    event = stripe().webhooks.constructEvent(await request.text(), signature, secret);
+    const body = await readTextLimited(request, 256 * 1024);
+    event = stripe().webhooks.constructEvent(body, signature, secret);
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return Response.json({ error: error.message }, { status: 413 });
+    }
     console.error("Rejected Stripe webhook", error);
     return Response.json({ error: "Invalid signature" }, { status: 400 });
   }

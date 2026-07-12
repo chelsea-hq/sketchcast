@@ -33,6 +33,10 @@ five business days.
   written. Checkout uses server-owned Price IDs, never browser-supplied amounts.
 - If Clerk, Stripe, or Upstash is incomplete, hosted entitlements fail closed
   while the Community/BYOK product remains usable.
+- Production pages use an enforced, per-request nonce CSP with `strict-dynamic`;
+  required blob media/workers and Clerk hosts are narrowly allowed.
+- Streamed request bodies are capped even when `Content-Length` is missing, and
+  production firewall rules protect every cost-bearing customer endpoint.
 
 The complete threat model and hosting guidance are in
 [docs/SECURITY-MODEL.md](docs/SECURITY-MODEL.md).

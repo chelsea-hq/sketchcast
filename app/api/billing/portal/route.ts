@@ -1,8 +1,14 @@
 import { billingConfigured, getSubscription } from "@/lib/creator-cloud";
 import { hostedUserId } from "@/lib/hosted-auth";
 import { appUrl, stripe } from "@/lib/stripe";
+import { guardApiRequest } from "@/lib/api-guard";
 
 export async function POST(request: Request) {
+  const guard = guardApiRequest(request, {
+    maxBodyBytes: 0,
+    requireContentType: false,
+  });
+  if (guard) return guard;
   if (!billingConfigured()) {
     return Response.json({ error: "Billing is not configured" }, { status: 503 });
   }

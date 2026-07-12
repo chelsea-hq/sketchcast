@@ -2,6 +2,7 @@ import { redactForLog, serverKeysEnabled } from "@/lib/ai";
 import { guardApiRequest } from "@/lib/api-guard";
 import { creatorEntitlement, reserveUsage } from "@/lib/creator-cloud";
 import { CREATOR_LIMITS } from "@/lib/creator-cloud-types";
+import { readArrayBufferLimited, RequestBodyTooLargeError } from "@/lib/request-body";
 
 export const maxDuration = 120;
 
@@ -22,7 +23,15 @@ export async function POST(request: Request) {
   });
   if (blocked) return blocked;
 
-  const audio = await request.arrayBuffer();
+  let audio: ArrayBuffer;
+  try {
+    audio = await readArrayBufferLimited(request, 30 * 1024 * 1024);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return Response.json({ error: error.message }, { status: 413 });
+    }
+    return Response.json({ error: "Could not read audio body" }, { status: 400 });
+  }
   if (audio.byteLength === 0) {
     return Response.json({ error: "Empty audio body" }, { status: 400 });
   }
@@ -47,7 +56,12 @@ export async function POST(request: Request) {
       );
       if (!reservation.allowed) {
         return Response.json(
-          { error: "Monthly transcription limit reached. Add your own Deepgram key to continue." },
+          {
+            error:
+              reservation.reason === "global"
+                ? "Creator Cloud reached its monthly transcription capacity. Add your own Deepgram key to continue."
+                : "Monthly transcription limit reached. Add your own Deepgram key to continue.",
+          },
           { status: 429 }
         );
       }

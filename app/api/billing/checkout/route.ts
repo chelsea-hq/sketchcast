@@ -3,10 +3,14 @@ import { hostedUserEmail, hostedUserId } from "@/lib/hosted-auth";
 import { appUrl, priceForInterval, stripe } from "@/lib/stripe";
 import type { BillingInterval } from "@/lib/creator-cloud-types";
 import { isActiveSubscription } from "@/lib/entitlements";
+import { guardApiRequest } from "@/lib/api-guard";
+import { readJsonLimited, RequestBodyTooLargeError } from "@/lib/request-body";
 
 const INTERVALS = new Set<BillingInterval>(["monthly", "annual", "founding"]);
 
 export async function POST(request: Request) {
+  const guard = guardApiRequest(request, { maxBodyBytes: 8 * 1024 });
+  if (guard) return guard;
   if (!billingConfigured() || !cloudStoreConfigured()) {
     return Response.json(
       { error: "Creator Cloud checkout is not open yet" },
@@ -20,11 +24,14 @@ export async function POST(request: Request) {
 
   let interval: BillingInterval = "monthly";
   try {
-    const body = (await request.json()) as { interval?: string };
+    const body = await readJsonLimited<{ interval?: string }>(request, 8 * 1024);
     if (body.interval && INTERVALS.has(body.interval as BillingInterval)) {
       interval = body.interval as BillingInterval;
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return Response.json({ error: error.message }, { status: 413 });
+    }
     return Response.json({ error: "Invalid checkout request" }, { status: 400 });
   }
   const price = priceForInterval(interval);

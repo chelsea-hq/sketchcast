@@ -27,7 +27,10 @@ Sketchcast fork as their own creator dashboard.
 - Do not add analytics, uploads, billing, or authentication without explaining
   the new data flow and getting approval.
 - Preserve offline fallbacks, request body caps, origin checks, log redaction,
-  recovery-code encryption, and security headers.
+  recovery-code encryption, nonce CSP, and security headers.
+- If Creator Cloud is retained, preserve signature-verified Stripe webhooks,
+  server-owned Price IDs, active-subscription checks, atomic per-user and global
+  quotas, and production firewall limits.
 
 ## Customization workflow
 
@@ -39,6 +42,15 @@ Sketchcast fork as their own creator dashboard.
 4. Update README and security documentation for new environment variables or
    third-party services.
 5. Add tests for behavior and trust-boundary changes.
+
+## Choosing a hosting profile
+
+- For a branded personal dashboard or public fork, keep Community mode: no
+  account requirement, BYOK, local Recovery Vault, and optional self-hosted sync.
+- For a paid hosted service, follow `docs/CREATOR-CLOUD-SETUP.md`. Do not enable
+  host-funded keys until Clerk, Stripe, Upstash, the signed webhook, both quota
+  layers, and firewall rules have been verified together.
+- Never use a client-side plan flag or editable Stripe Price ID as an entitlement.
 
 ## Required verification
 

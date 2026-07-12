@@ -15,6 +15,7 @@ export interface CreatorCloudLimits {
 export interface CreatorCloudAccount {
   authConfigured: boolean;
   billingConfigured: boolean;
+  foundingOfferAvailable: boolean;
   cloudConfigured: boolean;
   syncRequiresCreator: boolean;
   signedIn: boolean;

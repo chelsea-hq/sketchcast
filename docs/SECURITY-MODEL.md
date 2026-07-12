@@ -54,10 +54,13 @@ API then verifies an active subscription for reads and writes.
 - Clerk owns authentication sessions; Sketchcast stores no passwords.
 - Stripe Checkout receives only server-selected Price IDs. Entitlements are
   updated only from signature-verified Stripe webhooks.
+- Subscription writes compare Stripe event timestamps atomically, preventing a
+  delayed older webhook from replacing a newer entitlement state.
 - Upstash stores Stripe customer/subscription identifiers, subscription status,
   renewal timestamps, and monthly usage counters. It does not store prompts,
   provider keys, recordings, recovery codes, or plaintext projects.
-- Atomic Redis scripts reject managed usage above the configured monthly quota.
+- Atomic Redis scripts reject managed usage above either the account quota or
+  the deployment-wide monthly cost ceiling.
 - Missing configuration fails closed to the Community plan.
 
 ## Safe hosting profiles
@@ -89,9 +92,19 @@ API then verifies an active subscription for reads and writes.
 ## Web protections
 
 Sketchcast sends baseline content-type, frame, referrer, permissions, transport,
-and CSP headers. CSP begins in Report-Only mode so recording, Excalidraw, image
-paste, workers, and blob media can be tested. Enforce it only after reviewing
-production browser violations and removing any unnecessary source allowances.
+and an enforced nonce-based Content Security Policy. The request proxy generates
+a new nonce per page request; Next.js attaches it to framework scripts. The policy
+uses `strict-dynamic`, blocks plugins and framing, and permits the blob workers and
+media URLs required by Excalidraw and browser recording. When Clerk is configured,
+its exact frontend API origin is derived from the public publishable key and added
+to `connect-src`; Cloudflare's challenge frame and Clerk-hosted images are pinned
+explicitly. Production does not allow `unsafe-eval`.
+
+API request bodies are read through streaming byte limits rather than trusting
+`Content-Length` alone. Production firewall rules separately rate-limit sync,
+AI generation, transcription, and customer-created billing sessions by IP;
+Stripe's signed webhook endpoint is intentionally excluded from those customer
+limits.
 
 ## Dependency handling
 

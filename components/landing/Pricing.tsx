@@ -4,9 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 
 import SubscribeButton from "@/components/SubscribeButton";
+import { useCreatorCloud } from "@/components/useCreatorCloud";
 
 export default function Pricing() {
   const [yearly, setYearly] = useState(true);
+  const { account, loading } = useCreatorCloud();
+  const founding = yearly && account.foundingOfferAvailable;
 
   return (
     <section id="pricing" className="scroll-mt-20 py-16">
@@ -47,7 +50,7 @@ export default function Pricing() {
 
         <PlanCard
           name="Creator Cloud"
-          price={yearly ? "$79/yr" : "$9/mo"}
+          price={founding ? "$49/yr" : yearly ? "$79/yr" : "$9/mo"}
           blurb="Skip the API setup and keep your projects moving between devices."
           features={[
             "Everything in Community",
@@ -59,9 +62,15 @@ export default function Pricing() {
           ]}
           highlighted
         >
-          <SubscribeButton interval={yearly ? "annual" : "monthly"} />
+          <SubscribeButton
+            interval={founding ? "founding" : yearly ? "annual" : "monthly"}
+            account={account}
+            loading={loading}
+          />
           <p className="mt-2 text-center text-[11px] text-zinc-500">
-            Ask about the $49 first-year founding offer while spots remain.
+            {founding
+              ? "Founding rate for early members while spots remain."
+              : "Ask about the $49/year founding rate while spots remain."}
           </p>
         </PlanCard>
       </div>

@@ -7,5 +7,5 @@ export default function ClerkBoundary({ children }: { children: React.ReactNode 
   ) {
     return children;
   }
-  return <ClerkProvider>{children}</ClerkProvider>;
+  return <ClerkProvider dynamic>{children}</ClerkProvider>;
 }
