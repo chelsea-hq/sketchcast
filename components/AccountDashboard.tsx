@@ -38,8 +38,8 @@ export default function AccountDashboard() {
           <Link href="/studio" className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#7657ff] px-5 text-sm font-semibold text-white transition hover:bg-[#8468ff]">
             Open Community Studio
           </Link>
-          <a href="mailto:easyroadup@gmail.com?subject=Sketchcast%20Creator%20Cloud%20founding%20access" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white">
-            Join founding access
+          <a href="mailto:easyroadup@gmail.com?subject=Sketchcast%20Creator%20Cloud%20early%20access" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-5 text-sm font-semibold text-white/70 transition hover:bg-white/[0.08] hover:text-white">
+            Join early access
           </a>
         </div>
       </div>

@@ -66,7 +66,7 @@ services do not activate. See `.env.example` for the required variables. Before
 turning on funded provider keys in production:
 
 1. Configure Clerk, Stripe, and Upstash and set all production secrets.
-2. Create monthly and annual recurring Stripe Prices, plus the optional founding Price.
+2. Create the `$5/month` and `$39/year` recurring Stripe Prices.
 3. Point a Stripe webhook at `/api/billing/webhook` for checkout and subscription events.
 4. Set `SKETCHCAST_ALLOW_SERVER_KEYS=true` and `SKETCHCAST_REQUIRE_SYNC_SUBSCRIPTION=true`.
 5. Keep the Vercel firewall limits enabled and add provider spend alerts.

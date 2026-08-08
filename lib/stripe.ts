@@ -19,7 +19,6 @@ export function stripe(): Stripe {
 
 export function priceForInterval(interval: BillingInterval): string | null {
   if (interval === "monthly") return process.env.STRIPE_PRICE_CREATOR_MONTHLY ?? null;
-  if (interval === "founding") return process.env.STRIPE_PRICE_FOUNDING_ANNUAL ?? null;
   return process.env.STRIPE_PRICE_CREATOR_ANNUAL ?? null;
 }
 
