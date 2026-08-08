@@ -247,8 +247,6 @@ export async function accountSummary(): Promise<CreatorCloudAccount> {
   return {
     authConfigured: authConfigured(),
     billingConfigured: billingConfigured(),
-    foundingOfferAvailable:
-      billingConfigured() && Boolean(process.env.STRIPE_PRICE_FOUNDING_ANNUAL),
     cloudConfigured: cloudStoreConfigured(),
     syncRequiresCreator: syncRequiresCreator(),
     signedIn: Boolean(userId),

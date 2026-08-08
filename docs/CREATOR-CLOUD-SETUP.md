@@ -19,9 +19,8 @@ Never ask an agent or contributor to accept legal terms on your behalf.
 
 Create recurring Stripe Prices for:
 
-- Creator monthly (`$9/month` in the reference product);
-- Creator annual (`$79/year`);
-- optional founding annual (`$49/year` while the offer is open).
+- Creator monthly (`$5/month`);
+- Creator annual (`$39/year`).
 
 Copy only the Price IDs into Vercel. The checkout route maps a small interval
 enum to these server-owned IDs and never accepts an amount or arbitrary Price ID
@@ -48,7 +47,6 @@ NEXT_PUBLIC_APP_URL
 or fragment. Billing remains disabled in production if that value is missing or
 invalid, preventing Host-header-controlled Checkout return URLs.
 
-Set `STRIPE_PRICE_FOUNDING_ANNUAL` only while the founding rate is available.
 Some Vercel Upstash plans use the equivalent `KV_REST_API_URL` and
 `KV_REST_API_TOKEN` names; Sketchcast accepts either pair.
 

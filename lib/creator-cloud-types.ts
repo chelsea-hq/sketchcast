@@ -1,5 +1,5 @@
 export type SketchcastPlan = "community" | "creator";
-export type BillingInterval = "monthly" | "annual" | "founding";
+export type BillingInterval = "monthly" | "annual";
 
 export interface CreatorCloudUsage {
   aiGenerations: number;
@@ -15,7 +15,6 @@ export interface CreatorCloudLimits {
 export interface CreatorCloudAccount {
   authConfigured: boolean;
   billingConfigured: boolean;
-  foundingOfferAvailable: boolean;
   cloudConfigured: boolean;
   syncRequiresCreator: boolean;
   signedIn: boolean;
@@ -33,7 +32,7 @@ export const COMMUNITY_LIMITS: CreatorCloudLimits = {
 };
 
 export const CREATOR_LIMITS: CreatorCloudLimits = {
-  aiGenerations: 100,
-  transcriptionSeconds: 120 * 60,
+  aiGenerations: 30,
+  transcriptionSeconds: 60 * 60,
   templates: null,
 };

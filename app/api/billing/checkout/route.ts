@@ -5,8 +5,9 @@ import type { BillingInterval } from "@/lib/creator-cloud-types";
 import { isActiveSubscription } from "@/lib/entitlements";
 import { guardApiRequest } from "@/lib/api-guard";
 import { readJsonLimited, RequestBodyTooLargeError } from "@/lib/request-body";
+import { matchesCreatorOffer } from "@/lib/creator-pricing";
 
-const INTERVALS = new Set<BillingInterval>(["monthly", "annual", "founding"]);
+const INTERVALS = new Set<BillingInterval>(["monthly", "annual"]);
 
 export async function POST(request: Request) {
   const guard = guardApiRequest(request, { maxBodyBytes: 8 * 1024 });
@@ -48,6 +49,21 @@ export async function POST(request: Request) {
   }
   const email = await hostedUserEmail();
   const client = stripe();
+  try {
+    const configuredPrice = await client.prices.retrieve(price);
+    if (!matchesCreatorOffer(configuredPrice, interval)) {
+      return Response.json(
+        { error: "Creator Cloud billing price needs an operator update" },
+        { status: 503 }
+      );
+    }
+  } catch (error) {
+    console.error("Could not verify the configured Creator Cloud Price", error);
+    return Response.json(
+      { error: "Creator Cloud billing price could not be verified" },
+      { status: 503 }
+    );
+  }
   const session = await client.checkout.sessions.create({
     mode: "subscription",
     customer: existing?.stripeCustomerId || undefined,

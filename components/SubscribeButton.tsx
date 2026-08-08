@@ -26,7 +26,7 @@ export default function SubscribeButton({
   const startCheckout = async () => {
     if (!ready) {
       window.location.assign(
-        "mailto:easyroadup@gmail.com?subject=Sketchcast%20Creator%20Cloud%20founding%20access"
+        "mailto:easyroadup@gmail.com?subject=Sketchcast%20Creator%20Cloud%20early%20access"
       );
       return;
     }
@@ -61,7 +61,7 @@ export default function SubscribeButton({
         ? "Opening secure checkout…"
         : ready
           ? "Choose Creator Cloud"
-          : "Join founding access"}
+          : "Get Creator updates"}
     </button>
   );
 }

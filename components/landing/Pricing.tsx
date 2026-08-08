@@ -5,6 +5,8 @@ import Link from "next/link";
 
 import SubscribeButton from "@/components/SubscribeButton";
 import { useCreatorCloud } from "@/components/useCreatorCloud";
+import { creatorOffer } from "@/lib/creator-pricing";
+import type { BillingInterval } from "@/lib/creator-cloud-types";
 
 const communityFeatures = [
   "Whiteboard, webcam, teleprompter, and exports",
@@ -17,11 +19,11 @@ const communityFeatures = [
 
 const creatorFeatures = [
   "Everything in Community",
-  "Managed AI generations and transcription",
+  "30 managed AI generations each month",
+  "60 transcription minutes each month",
   "End-to-end encrypted project sync",
   "Unlimited reusable layouts",
   "Bring your own keys anytime with no quota",
-  "Early-member support and product input",
 ];
 
 function Check() {
@@ -33,9 +35,9 @@ function Check() {
 }
 
 export default function Pricing() {
-  const [yearly, setYearly] = useState(true);
+  const [interval, setInterval] = useState<BillingInterval>("monthly");
   const { account, loading } = useCreatorCloud();
-  const founding = yearly && account.foundingOfferAvailable;
+  const offer = creatorOffer(interval);
 
   return (
     <section id="pricing" className="scroll-mt-24 py-24 sm:py-32">
@@ -49,9 +51,9 @@ export default function Pricing() {
             Community is a real product, not a trial. Creator Cloud funds hosted convenience while the local-first studio stays open.
           </p>
           <div className="inline-flex w-fit items-center rounded-full border border-black/10 bg-white p-1 text-xs font-semibold">
-            <button type="button" onClick={() => setYearly(false)} className={`min-h-10 rounded-full px-4 transition ${!yearly ? "bg-[#111116] text-white" : "text-black/45 hover:text-black"}`}>Monthly</button>
-            <button type="button" onClick={() => setYearly(true)} className={`min-h-10 rounded-full px-4 transition ${yearly ? "bg-[#111116] text-white" : "text-black/45 hover:text-black"}`}>
-              Yearly <span className={yearly ? "text-[#d8ff6f]" : "text-[#6f52ee]"}>· save $29</span>
+            <button type="button" aria-pressed={interval === "monthly"} onClick={() => setInterval("monthly")} className={`min-h-10 rounded-full px-4 transition ${interval === "monthly" ? "bg-[#111116] text-white" : "text-black/45 hover:text-black"}`}>Monthly</button>
+            <button type="button" aria-pressed={interval === "annual"} onClick={() => setInterval("annual")} className={`min-h-10 rounded-full px-4 transition ${interval === "annual" ? "bg-[#111116] text-white" : "text-black/45 hover:text-black"}`}>
+              Yearly <span className={interval === "annual" ? "text-[#d8ff6f]" : "text-[#6f52ee]"}>· save $21</span>
             </button>
           </div>
         </div>
@@ -74,15 +76,16 @@ export default function Pricing() {
         <PlanCard
           eyebrow="Hosted convenience"
           name="Creator Cloud"
-          price={founding ? "$49" : yearly ? "$79" : "$9"}
-          cadence={founding || yearly ? "/ year" : "/ month"}
+          price={offer.displayPrice}
+          cadence={offer.cadence}
           blurb="For creators who want encrypted continuity and managed services without API setup."
           features={creatorFeatures}
           highlighted
         >
-          <SubscribeButton interval={founding ? "founding" : yearly ? "annual" : "monthly"} account={account} loading={loading} />
+          <p className="mt-6 text-center text-xs font-medium text-white/55">{offer.billingNote}</p>
+          <SubscribeButton interval={interval} account={account} loading={loading} />
           <p className="mt-3 text-center text-[11px] leading-5 text-white/42">
-            {founding ? "Founding rate for early members while spots remain." : "Founding access may still be available for early members."}
+            Early-access pricing. Your own provider keys never count against managed limits.
           </p>
         </PlanCard>
       </div>
