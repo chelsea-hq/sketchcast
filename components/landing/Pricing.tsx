@@ -6,95 +6,118 @@ import Link from "next/link";
 import SubscribeButton from "@/components/SubscribeButton";
 import { useCreatorCloud } from "@/components/useCreatorCloud";
 
+const communityFeatures = [
+  "Whiteboard, webcam, teleprompter, and exports",
+  "Take editor, transcript cuts, and action slides",
+  "Local projects and the Recovery Vault",
+  "AI diagrams and copy with your own keys",
+  "Three reusable layouts",
+  "MIT licensed and self-hostable",
+];
+
+const creatorFeatures = [
+  "Everything in Community",
+  "Managed AI generations and transcription",
+  "End-to-end encrypted project sync",
+  "Unlimited reusable layouts",
+  "Bring your own keys anytime with no quota",
+  "Early-member support and product input",
+];
+
+function Check() {
+  return (
+    <svg aria-hidden viewBox="0 0 18 18" className="mt-0.5 h-4 w-4 shrink-0 fill-none stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m3.5 9 3.3 3.3 7.7-7.6" />
+    </svg>
+  );
+}
+
 export default function Pricing() {
   const [yearly, setYearly] = useState(true);
   const { account, loading } = useCreatorCloud();
   const founding = yearly && account.foundingOfferAvailable;
 
   return (
-    <section id="pricing" className="scroll-mt-20 py-16">
-      <h2 className="text-center text-3xl font-bold text-zinc-900">
-        Start free. Pay only for the hosted conveniences.
-      </h2>
-      <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-zinc-500">
-        Sketchcast Community stays open source and useful without an account. Creator
-        Cloud pays for managed AI, transcription, encrypted storage, and support.
-      </p>
-
-      <div className="mt-6 flex items-center justify-center gap-3 text-sm">
-        <span className={yearly ? "text-zinc-400" : "font-semibold text-zinc-900"}>Monthly</span>
-        <button type="button" role="switch" aria-checked={yearly} aria-label="Toggle yearly billing" onClick={() => setYearly((value) => !value)} className={`relative h-6 w-11 rounded-full transition-colors ${yearly ? "bg-indigo-600" : "bg-zinc-300"}`}>
-          <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${yearly ? "left-[22px]" : "left-0.5"}`} />
-        </button>
-        <span className={yearly ? "font-semibold text-zinc-900" : "text-zinc-400"}>Yearly <span className="text-indigo-600">· save $29</span></span>
+    <section id="pricing" className="scroll-mt-24 py-24 sm:py-32">
+      <div className="grid gap-8 border-b border-black/10 pb-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+        <div>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6f52ee]">Simple by design</p>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">Start local.<br />Add cloud when it helps.</h2>
+        </div>
+        <div className="flex flex-col gap-5 lg:items-end">
+          <p className="max-w-2xl text-sm leading-6 text-black/55 lg:text-right">
+            Community is a real product, not a trial. Creator Cloud funds hosted convenience while the local-first studio stays open.
+          </p>
+          <div className="inline-flex w-fit items-center rounded-full border border-black/10 bg-white p-1 text-xs font-semibold">
+            <button type="button" onClick={() => setYearly(false)} className={`min-h-10 rounded-full px-4 transition ${!yearly ? "bg-[#111116] text-white" : "text-black/45 hover:text-black"}`}>Monthly</button>
+            <button type="button" onClick={() => setYearly(true)} className={`min-h-10 rounded-full px-4 transition ${yearly ? "bg-[#111116] text-white" : "text-black/45 hover:text-black"}`}>
+              Yearly <span className={yearly ? "text-[#d8ff6f]" : "text-[#6f52ee]"}>· save $29</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-2">
+      <div className="mt-8 grid gap-5 lg:grid-cols-2">
         <PlanCard
+          eyebrow="Open source"
           name="Community"
           price="$0"
-          blurb="The complete local-first studio. No account or credit card."
-          features={[
-            "Whiteboard, webcam, teleprompter, and exports",
-            "Take editor, manual cuts, and action slides",
-            "Local projects and Recovery Vault",
-            "AI diagrams and post copy with your own keys",
-            "3 reusable layouts",
-            "MIT licensed and self-hostable",
-          ]}
+          cadence="forever"
+          blurb="The complete local-first studio. No account, no credit card, no artificial project limit."
+          features={communityFeatures}
         >
-          <Link href="/studio" className="mt-6 block rounded-lg bg-zinc-100 py-2.5 text-center text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-200">
+          <Link href="/studio" className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-full border border-black/10 bg-[#111116] px-5 text-sm font-semibold text-white transition hover:bg-[#7657ff]">
             Open the free studio
           </Link>
         </PlanCard>
 
         <PlanCard
+          eyebrow="Hosted convenience"
           name="Creator Cloud"
-          price={founding ? "$49/yr" : yearly ? "$79/yr" : "$9/mo"}
-          blurb="Skip the API setup and keep your projects moving between devices."
-          features={[
-            "Everything in Community",
-            "100 managed AI generations each month",
-            "120 managed transcription minutes each month",
-            "End-to-end encrypted project sync",
-            "Unlimited reusable layouts",
-            "Bring your own keys anytime with no quota",
-          ]}
+          price={founding ? "$49" : yearly ? "$79" : "$9"}
+          cadence={founding || yearly ? "/ year" : "/ month"}
+          blurb="For creators who want encrypted continuity and managed services without API setup."
+          features={creatorFeatures}
           highlighted
         >
-          <SubscribeButton
-            interval={founding ? "founding" : yearly ? "annual" : "monthly"}
-            account={account}
-            loading={loading}
-          />
-          <p className="mt-2 text-center text-[11px] text-zinc-500">
-            {founding
-              ? "Founding rate for early members while spots remain."
-              : "Ask about the $49/year founding rate while spots remain."}
+          <SubscribeButton interval={founding ? "founding" : yearly ? "annual" : "monthly"} account={account} loading={loading} />
+          <p className="mt-3 text-center text-[11px] leading-5 text-white/42">
+            {founding ? "Founding rate for early members while spots remain." : "Founding access may still be available for early members."}
           </p>
         </PlanCard>
       </div>
 
-      <p className="mx-auto mt-6 max-w-2xl text-center text-xs leading-relaxed text-zinc-500">
-        Creator Cloud checkout will only appear when the hosted account and billing
-        services are active. Until then, joining founding access sends a simple email—no
-        pretend checkout and no surprise charge.
+      <p className="mx-auto mt-6 max-w-2xl text-center text-xs leading-5 text-black/42">
+        Checkout appears only when hosted accounts and billing are configured. Until then, the interest path sends an email—never a pretend purchase or surprise charge.
       </p>
     </section>
   );
 }
 
-function PlanCard({ name, price, blurb, features, highlighted = false, children }: { name: string; price: string; blurb: string; features: string[]; highlighted?: boolean; children: React.ReactNode }) {
+function PlanCard({ eyebrow, name, price, cadence, blurb, features, highlighted = false, children }: { eyebrow: string; name: string; price: string; cadence: string; blurb: string; features: string[]; highlighted?: boolean; children: React.ReactNode }) {
   return (
-    <div className={`relative rounded-2xl border bg-white p-6 ${highlighted ? "border-indigo-600 shadow-xl ring-1 ring-indigo-600" : "border-zinc-200 shadow-sm"}`}>
-      {highlighted && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-0.5 text-[11px] font-semibold text-white">Hosted plan</span>}
-      <h3 className="text-sm font-semibold text-zinc-900">{name}</h3>
-      <p className="mt-3 text-4xl font-bold tabular-nums text-zinc-900">{price}</p>
-      <p className="mt-2 text-sm text-zinc-600">{blurb}</p>
-      <ul className="mt-4 space-y-2">
-        {features.map((feature) => <li key={feature} className="flex gap-2 text-sm text-zinc-600"><span className="text-indigo-600">✓</span>{feature}</li>)}
-      </ul>
-      {children}
-    </div>
+    <article className={`relative overflow-hidden rounded-[28px] p-6 sm:p-8 ${highlighted ? "bg-[#111116] text-white shadow-[0_30px_90px_rgba(17,17,22,0.18)]" : "border border-black/10 bg-white text-[#111116]"}`}>
+      {highlighted && <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#7657ff]/35 blur-[80px]" aria-hidden />}
+      <div className="relative">
+        <p className={`font-mono text-[10px] font-semibold uppercase tracking-[0.18em] ${highlighted ? "text-[#b6a8ff]" : "text-[#6f52ee]"}`}>{eyebrow}</p>
+        <div className="mt-5 flex items-start justify-between gap-4">
+          <h3 className="text-2xl font-semibold tracking-[-0.04em]">{name}</h3>
+          {highlighted && <span className="rounded-full bg-[#d8ff6f] px-3 py-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-[#111116]">Early access</span>}
+        </div>
+        <p className="mt-8 flex items-end gap-2">
+          <span className="text-6xl font-semibold tracking-[-0.065em]">{price}</span>
+          <span className={`pb-2 text-sm ${highlighted ? "text-white/42" : "text-black/42"}`}>{cadence}</span>
+        </p>
+        <p className={`mt-5 max-w-lg text-sm leading-6 ${highlighted ? "text-white/55" : "text-black/55"}`}>{blurb}</p>
+        <ul className={`mt-8 space-y-3 border-t pt-7 ${highlighted ? "border-white/10" : "border-black/10"}`}>
+          {features.map((feature) => (
+            <li key={feature} className={`flex gap-2.5 text-sm ${highlighted ? "text-white/68" : "text-black/62"}`}>
+              <span className={highlighted ? "text-[#d8ff6f]" : "text-[#6f52ee]"}><Check /></span>{feature}
+            </li>
+          ))}
+        </ul>
+        {children}
+      </div>
+    </article>
   );
 }

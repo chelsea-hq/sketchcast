@@ -33,7 +33,7 @@ function formatClock(totalSeconds: number): string {
 }
 
 const pill =
-  "rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex min-h-9 items-center justify-center rounded-full border px-3 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40";
 
 export default function RecordBar({
   hasSession,
@@ -59,7 +59,15 @@ export default function RecordBar({
   const recording = recState !== "idle";
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-t border-zinc-800 bg-zinc-950 px-4 py-2.5">
+    <>
+      <div className="flex min-h-12 shrink-0 items-center justify-between border-t border-white/[0.07] bg-[#0b0c11] px-3 md:hidden">
+        <span className="flex items-center gap-2 text-[11px] font-medium text-white/52">
+          <span className="h-2 w-2 rounded-full bg-[#d8ff6f] shadow-[0_0_10px_rgba(216,255,111,0.55)]" />
+          Mobile prep mode
+        </span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-white/28">Record on desktop</span>
+      </div>
+      <div className="hidden shrink-0 flex-wrap items-center gap-2 border-t border-white/[0.07] bg-[#0b0c11] px-3 py-2.5 md:flex xl:flex-nowrap xl:gap-3 xl:px-4">
       {/* Session + device toggles */}
       <div className="flex items-center gap-1.5">
         {hasSession ? (
@@ -67,14 +75,14 @@ export default function RecordBar({
             <button
               type="button"
               onClick={onToggleCam}
-              className={`${pill} ${camOn ? "bg-indigo-500/20 text-indigo-300" : "bg-zinc-800 text-zinc-400"}`}
+              className={`${pill} ${camOn ? "border-emerald-400/15 bg-emerald-400/[0.08] text-emerald-300" : "border-white/[0.07] bg-white/[0.04] text-white/40"}`}
             >
               {camOn ? "Cam on" : "Cam off"}
             </button>
             <button
               type="button"
               onClick={onToggleMic}
-              className={`${pill} ${micOn ? "bg-indigo-500/20 text-indigo-300" : "bg-zinc-800 text-zinc-400"}`}
+              className={`${pill} ${micOn ? "border-emerald-400/15 bg-emerald-400/[0.08] text-emerald-300" : "border-white/[0.07] bg-white/[0.04] text-white/40"}`}
             >
               {micOn ? "Mic on" : "Mic off"}
             </button>
@@ -82,7 +90,7 @@ export default function RecordBar({
               type="button"
               onClick={onEndSession}
               disabled={recording}
-              className={`${pill} bg-zinc-800 text-zinc-400 hover:bg-zinc-700`}
+              className={`${pill} border-white/[0.07] bg-white/[0.04] text-white/40 hover:bg-white/[0.08] hover:text-white/70`}
             >
               End session
             </button>
@@ -91,12 +99,15 @@ export default function RecordBar({
           <button
             type="button"
             onClick={onStartSession}
-            className={`${pill} bg-indigo-600 text-white hover:bg-indigo-500`}
+            className={`${pill} border-[#7657ff]/30 bg-[#7657ff]/15 text-[#b6a8ff] hover:bg-[#7657ff]/25 hover:text-white`}
           >
-            Start session · camera + mic
+            <span className="mr-1.5 h-2 w-2 rounded-full bg-[#9d88ff]" />
+            Start camera + mic
           </button>
         )}
       </div>
+
+      <span className="hidden h-6 w-px bg-white/[0.08] xl:block" aria-hidden />
 
       {/* Record controls */}
       <div className="flex items-center gap-2">
@@ -104,7 +115,7 @@ export default function RecordBar({
           <button
             type="button"
             onClick={onRecord}
-            className="flex items-center gap-2 rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-500"
+            className="flex min-h-10 items-center gap-2 rounded-full bg-[#f04456] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(240,68,86,0.18)] transition hover:bg-[#ff5566]"
           >
             <span className="h-2.5 w-2.5 rounded-full bg-white" />
             Record
@@ -112,13 +123,13 @@ export default function RecordBar({
         )}
         {recState === "recording" && (
           <>
-            <button type="button" onClick={onPause} className={`${pill} bg-zinc-800 text-zinc-200 hover:bg-zinc-700`}>
+            <button type="button" onClick={onPause} className={`${pill} border-white/[0.07] bg-white/[0.05] text-white/70 hover:bg-white/[0.09]`}>
               Pause
             </button>
             <button
               type="button"
               onClick={onStop}
-              className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-500"
+              className="min-h-10 rounded-full bg-[#f04456] px-4 text-sm font-semibold text-white transition hover:bg-[#ff5566]"
             >
               Stop &amp; save
             </button>
@@ -126,27 +137,27 @@ export default function RecordBar({
         )}
         {recState === "paused" && (
           <>
-            <button type="button" onClick={onResume} className={`${pill} bg-emerald-600 text-white hover:bg-emerald-500`}>
+            <button type="button" onClick={onResume} className={`${pill} border-emerald-400/20 bg-emerald-400/15 text-emerald-200 hover:bg-emerald-400/25`}>
               Resume
             </button>
             <button
               type="button"
               onClick={onStop}
-              className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-500"
+              className="min-h-10 rounded-full bg-[#f04456] px-4 text-sm font-semibold text-white transition hover:bg-[#ff5566]"
             >
               Stop &amp; save
             </button>
           </>
         )}
         <span
-          className={`font-mono text-sm tabular-nums ${recording ? "text-red-400" : "text-zinc-500"}`}
+          className={`min-w-[3.2rem] font-mono text-xs tabular-nums ${recording ? "text-red-300" : "text-white/28"}`}
         >
           {formatClock(elapsed)}
         </span>
       </div>
 
       {/* Format switcher */}
-      <div className="flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.035] p-1 xl:ml-0">
         {FORMAT_KEYS.map((key) => (
           <button
             key={key}
@@ -154,24 +165,24 @@ export default function RecordBar({
             disabled={recording}
             onClick={() => onFormatChange(key)}
             title={FORMATS[key].hint}
-            className={`${pill} ${
+            className={`inline-flex min-h-8 items-center rounded-full px-2.5 text-[11px] font-semibold transition disabled:opacity-40 ${
               format === key
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                ? "bg-white text-[#111116]"
+                : "text-white/38 hover:bg-white/[0.06] hover:text-white/70"
             }`}
           >
             {FORMATS[key].label}
           </button>
         ))}
-        <span className="ml-1 hidden text-[11px] text-zinc-500 lg:inline">
+        <span className="ml-1 hidden pr-2 text-[10px] text-white/28 2xl:inline">
           {FORMATS[format].hint}
         </span>
       </div>
 
       {/* Webcam size + prompter */}
-      <div className="ml-auto flex items-center gap-3">
+      <div className="flex items-center gap-2 xl:ml-auto">
         {hasSession && (
-          <label className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+          <label className="hidden items-center gap-1.5 text-[10px] text-white/38 2xl:flex">
             Webcam size
             <input
               type="range"
@@ -180,7 +191,7 @@ export default function RecordBar({
               step={0.01}
               value={webcam.sizeFrac}
               onChange={(e) => onWebcamSize(Number(e.target.value))}
-              className="w-20 accent-indigo-500"
+              className="w-20 accent-[#7657ff]"
             />
           </label>
         )}
@@ -189,13 +200,14 @@ export default function RecordBar({
           onClick={onTogglePrompter}
           className={`${pill} ${
             prompterVisible
-              ? "bg-emerald-500/20 text-emerald-300"
-              : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+              ? "border-[#d8ff6f]/20 bg-[#d8ff6f]/10 text-[#d8ff6f]"
+              : "border-white/[0.07] bg-white/[0.04] text-white/42 hover:bg-white/[0.08] hover:text-white/70"
           }`}
         >
           Prompter
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

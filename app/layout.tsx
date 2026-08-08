@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { Toaster } from "sonner";
@@ -20,9 +20,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   // Swap for the real domain once one is chosen
   metadataBase: new URL("https://sketchcast-silk.vercel.app"),
-  title: "Sketchcast Studio",
+  title: {
+    default: "Sketchcast · Make ideas click on video",
+    template: "%s · Sketchcast",
+  },
   description:
-    "Whiteboard + webcam + teleprompter recording studio for educational creators. Type a concept, get a diagram, record, and export for every platform.",
+    "The local-first whiteboard recording studio for educational creators. Sketch a lesson, prompt yourself, record, refine, and publish for every feed.",
   openGraph: {
     title: "Sketchcast Studio · Explain it once. Post it everywhere.",
     description:
@@ -36,6 +39,11 @@ export const metadata: Metadata = {
       "The whiteboard recording studio for educational creators. AI diagrams, teleprompter, transcript editing, every format.",
     images: ["/shots/studio-hero.png"],
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#08090c",
 };
 
 export default async function RootLayout({
