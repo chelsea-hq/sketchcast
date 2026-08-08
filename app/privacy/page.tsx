@@ -1,20 +1,20 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy Policy · Sketchcast Studio",
+  title: "Privacy Policy",
 };
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-300">
-      <div className="mx-auto max-w-2xl space-y-6 text-sm leading-relaxed">
-        <Link href="/" className="text-indigo-400 hover:text-indigo-300">
+    <div className="min-h-screen bg-[#f3f3ed] px-5 py-8 text-black/62 sm:px-8 sm:py-12">
+      <article className="mx-auto max-w-3xl space-y-7 rounded-[28px] border border-black/10 bg-white p-6 text-[15px] leading-7 shadow-[0_30px_90px_rgba(17,17,22,0.06)] sm:p-10">
+        <Link href="/" className="inline-flex min-h-10 items-center rounded-full border border-black/10 px-4 text-xs font-semibold text-[#6f52ee] transition hover:bg-[#7657ff] hover:text-white">
           ← Sketchcast Studio
         </Link>
-        <h1 className="text-2xl font-bold text-white">Privacy Policy</h1>
-        <p className="text-zinc-500">Effective July 12, 2026</p>
+        <h1 className="text-4xl font-semibold tracking-[-0.05em] text-[#111116] sm:text-5xl">Privacy Policy</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-black/35">Effective July 12, 2026</p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">The short version</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">The short version</h2>
         <p>
           Sketchcast is local-first. We don’t run ad trackers, and we never
           store your videos or API keys on our servers. Optional Creator Cloud
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
           after it is encrypted in your browser with a recovery code we do not know.
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">What stays on your device</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">What stays on your device</h2>
         <p>
           Your named projects, recordings, saved templates, and API keys live
           in browser storage on your machine. Recordings are kept in the local
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           takes and API keys are never included in cloud sync.
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">What leaves your device, and when</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">What leaves your device, and when</h2>
         <p>
           Four product features send data out, each only when you use it. (1) AI
           generation: when you generate a diagram or social copy, your concept
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           agent, as virtually every website’s infrastructure does.
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">Accounts and billing</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">Accounts and billing</h2>
         <p>
           If you create a Creator Cloud account, Clerk processes your identity
           and session. Stripe processes checkout and payment details; Sketchcast
@@ -60,22 +60,22 @@ export default function PrivacyPage() {
           this data only to provide the account, enforce limits, and support billing.
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">Third-party AI providers</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">Third-party AI providers</h2>
         <p>
           Content you send to an AI provider is handled under that provider’s
           own terms and privacy policy, tied to your API key and account with
           them. Check their policies for how they handle API data.
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">Children</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">Children</h2>
         <p>Sketchcast is not directed at children under 13.</p>
 
-        <h2 className="pt-2 text-base font-semibold text-white">Changes and contact</h2>
+        <h2 className="pt-3 text-lg font-semibold tracking-[-0.02em] text-[#111116]">Changes and contact</h2>
         <p>
           We’ll update this page as the product evolves. You can request account
           deletion or ask privacy questions at easyroadup@gmail.com.
         </p>
-      </div>
+      </article>
     </div>
   );
 }

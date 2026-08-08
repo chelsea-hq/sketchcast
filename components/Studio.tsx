@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import Board from "./Board";
 import ProjectSwitcher from "./ProjectSwitcher";
 import RecordBar, { type RecState } from "./RecordBar";
 import SettingsModal from "./SettingsModal";
-import SidePanel, { type Tab } from "./SidePanel";
+import SidePanel, { TAB_LABELS, ToolIcon, type Tab } from "./SidePanel";
 import SyncModal from "./SyncModal";
 import TakeEditor from "./TakeEditor";
 import Teleprompter, { type PrompterSettings } from "./Teleprompter";
@@ -66,6 +67,7 @@ import { useCreatorCloud } from "@/components/useCreatorCloud";
 const CORNER_ORDER: WebcamCorner[] = ["br", "bl", "tl", "tr"];
 
 export default function Studio() {
+  const router = useRouter();
   const { account } = useCreatorCloud();
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
   const [format, setFormat] = useState<FormatKey>("16:9");
@@ -466,7 +468,7 @@ export default function Studio() {
       toast.error("The free plan includes 3 layouts.", {
         action: {
           label: "View Creator",
-          onClick: () => { window.location.href = "/#pricing"; },
+          onClick: () => router.push("/#pricing"),
         },
       });
       return;
@@ -727,18 +729,23 @@ export default function Studio() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100">
-      <header className="flex items-center gap-3 border-b border-zinc-800 px-4 py-2.5">
+    <div className="studio-shell flex h-dvh flex-col overflow-hidden bg-[#090a0f] text-zinc-100">
+      <header className="relative z-30 flex min-h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] bg-[#0b0c11]/95 px-2.5 backdrop-blur-xl sm:gap-3 sm:px-4">
         <button
           type="button"
           onClick={() => setPanelOpen(true)}
-          className="rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 md:hidden"
+          aria-label="Open creator tools"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.045] text-white/70 transition hover:bg-white/[0.08] hover:text-white md:hidden"
         >
-          ☰ Tools
+          <svg aria-hidden viewBox="0 0 20 20" className="h-[18px] w-[18px] fill-none stroke-current" strokeWidth="1.7" strokeLinecap="round"><path d="M4 5h12M4 10h12M4 15h12" /></svg>
         </button>
-        <h1 className="text-sm font-bold tracking-tight text-white">
-          Sketchcast <span className="font-normal text-zinc-500">Studio</span>
+        <h1 className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-[-0.02em] text-white">
+          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#7657ff] shadow-[0_0_22px_rgba(118,87,255,0.28)]">
+            <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 16.5 9 7l4 7 2.5-4L20 17"/><path d="M4 20h16"/></svg>
+          </span>
+          <span className="hidden sm:inline">Sketchcast <span className="font-normal text-white/35">Studio</span></span>
         </h1>
+        <span className="mx-1 hidden h-5 w-px bg-white/[0.08] sm:block" aria-hidden />
         <ProjectSwitcher
           projects={projects}
           activeProjectId={activeProjectId}
@@ -749,18 +756,18 @@ export default function Studio() {
           onDelete={handleDeleteProject}
           onOpenSync={handleOpenSync}
         />
-        <div className="ml-auto flex items-center gap-3 text-[11px]">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] sm:gap-2">
           <Link
             href="/account"
-            className="hidden rounded-md bg-zinc-800 px-2.5 py-1.5 font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white sm:block"
+            className="hidden min-h-9 items-center rounded-full border border-white/[0.07] bg-white/[0.04] px-3 font-medium text-white/55 transition hover:bg-white/[0.08] hover:text-white lg:inline-flex"
           >
             {account.plan === "creator" ? "Creator account" : "Account"}
           </Link>
           <span
-            className={`hidden items-center gap-1.5 rounded-full px-2 py-1 sm:flex ${
+            className={`hidden min-h-9 items-center gap-1.5 rounded-full px-3 xl:flex ${
               recoveryReady
-                ? "bg-emerald-500/10 text-emerald-400"
-                : "bg-zinc-800 text-zinc-500"
+                ? "bg-emerald-400/[0.08] text-emerald-300"
+                : "bg-white/[0.04] text-white/35"
             }`}
             title="Your active board, script, layout, and takes recover locally on this device"
           >
@@ -770,21 +777,15 @@ export default function Studio() {
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
-            className="rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
+            className="inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.045] px-2.5 text-xs font-medium text-white/65 transition hover:bg-white/[0.08] hover:text-white sm:h-9 sm:rounded-full sm:px-3"
+            aria-label="Provider keys and settings"
           >
-            ⚙ Keys
+            <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="10" cy="10" r="2.5"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4"/></svg>
+            <span className="hidden sm:inline">Keys</span>
           </button>
-          <span
-            className={`h-2 w-2 rounded-full ${
-              recState !== "idle"
-                ? "animate-pulse bg-red-500"
-                : stream
-                  ? "bg-emerald-500"
-                  : "bg-zinc-700"
-            }`}
-          />
-          <span className="text-zinc-500">
-            {recState !== "idle" ? "Recording" : stream ? "Session live" : "No session"}
+          <span className="hidden min-h-9 items-center gap-2 rounded-full border border-white/[0.06] px-3 text-white/35 sm:flex">
+            <span className={`h-2 w-2 rounded-full ${recState !== "idle" ? "animate-pulse bg-red-500" : stream ? "bg-emerald-400" : "bg-white/20"}`} />
+            {recState !== "idle" ? "Recording" : stream ? "Live" : "Ready"}
           </span>
         </div>
       </header>
@@ -792,59 +793,69 @@ export default function Studio() {
       <div className="flex min-h-0 flex-1">
         {panelOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/60 md:hidden"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
             onClick={() => setPanelOpen(false)}
           />
         )}
         <aside
           className={`${
-            panelOpen ? "translate-x-0" : "-translate-x-full"
-          } fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[340px] shrink-0 transform overflow-hidden border-r border-zinc-800 bg-zinc-950 p-3 transition-transform duration-200 md:static md:z-auto md:w-[340px] md:translate-x-0 md:transition-none`}
+            panelOpen ? "translate-y-0" : "pointer-events-none translate-y-[120%]"
+          } fixed inset-x-2 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 flex h-[min(70dvh,620px)] shrink-0 transform flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#111218] shadow-[0_30px_100px_rgba(0,0,0,0.65)] transition-transform duration-300 md:pointer-events-auto md:static md:z-auto md:h-auto md:w-[330px] md:translate-y-0 md:rounded-none md:border-y-0 md:border-l-0 md:border-r md:border-white/[0.07] md:bg-[#0d0e13] md:shadow-none md:transition-none xl:w-[350px]`}
         >
-          <div className="mb-2 flex justify-end md:hidden">
+          <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-white/[0.07] px-4 md:hidden">
+            <span className="flex items-center gap-2 text-sm font-semibold text-white">
+              <span className="text-[#9d88ff]"><ToolIcon tab={panelTab} /></span>
+              {TAB_LABELS[panelTab]}
+            </span>
             <button
               type="button"
               onClick={() => setPanelOpen(false)}
-              className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300"
+              aria-label="Close creator tools"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/[0.06] text-white/55 transition hover:bg-white/[0.1] hover:text-white"
             >
-              Close ✕
+              <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg>
             </button>
           </div>
-          <SidePanel
-            tab={panelTab}
-            onTabChange={setPanelTab}
-            onInsert={insertMermaid}
-            onSaveToTray={saveToTray}
-            onUseScript={(s) => setScript(s)}
-            onOpenKeys={() => setSettingsOpen(true)}
-            seedConcept={seedConcept}
-            onConceptUsed={setSeedConcept}
-            script={script}
-            onScriptChange={setScript}
-            prompter={prompter}
-            onPrompterChange={(patch) => setPrompter((p) => ({ ...p, ...patch }))}
-            templates={templates}
-            onSaveTemplate={handleSaveTemplate}
-            onLoadTemplate={handleLoadTemplate}
-            onDeleteTemplate={handleDeleteTemplate}
-            templateLimit={account.limits.templates}
-            takes={takes}
-            onDeleteTake={handleDeleteTake}
-            onEditTake={(take) => {
-              setEditingTake(take);
-              setPanelOpen(false);
-            }}
-          />
+          <div className="min-h-0 flex-1 p-4 md:p-3">
+            <SidePanel
+              tab={panelTab}
+              onTabChange={setPanelTab}
+              onInsert={insertMermaid}
+              onSaveToTray={saveToTray}
+              onUseScript={(s) => setScript(s)}
+              onOpenKeys={() => setSettingsOpen(true)}
+              seedConcept={seedConcept}
+              onConceptUsed={setSeedConcept}
+              script={script}
+              onScriptChange={setScript}
+              prompter={prompter}
+              onPrompterChange={(patch) => setPrompter((p) => ({ ...p, ...patch }))}
+              templates={templates}
+              onSaveTemplate={handleSaveTemplate}
+              onLoadTemplate={handleLoadTemplate}
+              onDeleteTemplate={handleDeleteTemplate}
+              templateLimit={account.limits.templates}
+              takes={takes}
+              onDeleteTake={handleDeleteTake}
+              onEditTake={(take) => {
+                setEditingTake(take);
+                setPanelOpen(false);
+              }}
+            />
+          </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-w-0 flex-1 flex-col pb-[calc(4.65rem+env(safe-area-inset-bottom))] md:pb-0">
           <div
             ref={boardWrapRef}
-            className="relative min-h-0 flex-1 bg-zinc-900 p-2"
+            className="relative min-h-0 flex-1 bg-[#090a0f] p-2 sm:p-3"
           >
+            <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-full border border-black/10 bg-white/90 px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-black/55 shadow-sm backdrop-blur md:hidden">
+              Prep mode
+            </div>
             <div
               ref={stageRef}
-              className="relative h-full w-full overflow-hidden rounded-lg bg-white"
+              className="relative h-full w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-white shadow-[0_18px_60px_rgba(0,0,0,0.32)]"
             >
               <Board onApiReady={handleApiReady} onSceneChange={handleSceneChange} />
               {/* Recorded frame: only this region lands in the export.
@@ -922,6 +933,28 @@ export default function Studio() {
           />
         </main>
       </div>
+
+      <nav aria-label="Creator tools" className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-[#0b0c11]/95 px-2 pt-1.5 pb-[calc(0.35rem+env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+          {(Object.keys(TAB_LABELS) as Tab[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setPanelTab(key);
+                setPanelOpen(true);
+              }}
+              aria-label={`Open ${TAB_LABELS[key]} tools`}
+              aria-current={panelOpen && panelTab === key ? "page" : undefined}
+              className={`relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold transition ${panelOpen && panelTab === key ? "bg-[#7657ff] text-white" : "text-white/42 hover:bg-white/[0.06] hover:text-white"}`}
+            >
+              <ToolIcon tab={key} />
+              <span>{TAB_LABELS[key]}</span>
+              {key === "takes" && takes.length > 0 && <span className="absolute right-2 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-red-500 px-1 text-[8px] text-white">{takes.length}</span>}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {editingTake && (
         <TakeEditor

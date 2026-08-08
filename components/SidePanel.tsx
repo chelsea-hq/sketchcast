@@ -8,7 +8,7 @@ import TakesPanel, { type Take } from "./panels/TakesPanel";
 import TemplatesPanel from "./panels/TemplatesPanel";
 import type { SketchTemplate } from "@/lib/templates";
 
-type Tab = "ai" | "script" | "copy" | "templates" | "takes";
+export type Tab = "ai" | "script" | "copy" | "templates" | "takes";
 
 interface SidePanelProps {
   tab: Tab;
@@ -33,7 +33,7 @@ interface SidePanelProps {
   onEditTake: (take: Take) => void;
 }
 
-function TabIcon({ tab }: { tab: Tab }) {
+export function ToolIcon({ tab }: { tab: Tab }) {
   const common = {
     className: "h-[18px] w-[18px]",
     fill: "none",
@@ -83,7 +83,7 @@ function TabIcon({ tab }: { tab: Tab }) {
   }
 }
 
-const TAB_LABELS: Record<Tab, string> = {
+export const TAB_LABELS: Record<Tab, string> = {
   ai: "Diagram",
   script: "Script",
   copy: "Copy",
@@ -96,19 +96,19 @@ export default function SidePanel(props: SidePanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-3 grid shrink-0 grid-cols-5 gap-1 rounded-xl bg-zinc-900 p-1">
+      <div className="mb-3 hidden shrink-0 grid-cols-5 gap-1 rounded-2xl border border-white/[0.06] bg-[#0e0f14] p-1.5 md:grid">
         {(Object.keys(TAB_LABELS) as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
             onClick={() => onTabChange(key)}
-            className={`relative flex flex-col items-center gap-1 rounded-lg px-1 py-2 transition-colors ${
+            className={`relative flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 transition-colors ${
               tab === key
-                ? "bg-indigo-600 text-white"
-                : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                ? "bg-[#7657ff] text-white shadow-[0_8px_24px_rgba(118,87,255,0.2)]"
+                : "text-white/45 hover:bg-white/[0.06] hover:text-white"
             }`}
           >
-            <TabIcon tab={key} />
+            <ToolIcon tab={key} />
             <span className="text-[10px] font-semibold leading-none">
               {TAB_LABELS[key]}
             </span>
@@ -161,5 +161,3 @@ export default function SidePanel(props: SidePanelProps) {
     </div>
   );
 }
-
-export type { Tab };

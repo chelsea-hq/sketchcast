@@ -5,8 +5,12 @@ import {
   buildContentSecurityPolicy,
   clerkFrontendOrigin,
 } from "@/lib/content-security-policy";
+import { clerkCredentialsConfigured } from "@/lib/provider-environment";
 
-const clerkOrigin = clerkFrontendOrigin(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+const clerkConfigured = clerkCredentialsConfigured();
+const clerkOrigin = clerkConfigured
+  ? clerkFrontendOrigin(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+  : null;
 
 function withContentSecurityPolicy(request: NextRequest): NextResponse {
   const nonce = btoa(crypto.randomUUID());
@@ -28,10 +32,7 @@ const withClerk = clerkMiddleware((_auth, request) =>
 );
 
 export default function proxy(request: NextRequest, event: NextFetchEvent) {
-  if (
-    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-    !process.env.CLERK_SECRET_KEY
-  ) {
+  if (!clerkConfigured) {
     return withContentSecurityPolicy(request);
   }
   return withClerk(request, event);
