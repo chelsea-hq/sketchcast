@@ -1,9 +1,10 @@
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import AuthShell from "@/components/AuthShell";
+import { clerkCredentialsConfigured } from "@/lib/provider-environment";
 
 export default function SignInPage() {
-  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  if (!clerkCredentialsConfigured()) {
     return <Unavailable />;
   }
   return <AuthShell mode="sign in"><SignIn /></AuthShell>;

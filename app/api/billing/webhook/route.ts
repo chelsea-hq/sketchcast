@@ -6,6 +6,7 @@ import {
   type SubscriptionRecord,
 } from "@/lib/creator-cloud";
 import { stripe } from "@/lib/stripe";
+import { stripeCredentialsConfigured } from "@/lib/provider-environment";
 import { readTextLimited, RequestBodyTooLargeError } from "@/lib/request-body";
 
 function objectId(value: string | { id: string } | null): string | null {
@@ -48,7 +49,7 @@ async function persistSubscription(
 
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) {
+  if (!secret || !stripeCredentialsConfigured()) {
     return Response.json({ error: "Stripe webhook is not configured" }, { status: 503 });
   }
   const signature = request.headers.get("stripe-signature");

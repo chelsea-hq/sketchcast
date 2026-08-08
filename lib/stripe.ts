@@ -4,12 +4,15 @@ import Stripe from "stripe";
 
 import type { BillingInterval } from "./creator-cloud-types";
 import { configuredAppUrl } from "./app-url";
+import { stripeCredentialsConfigured } from "./provider-environment";
 
 let stripeClient: Stripe | null = null;
 
 export function stripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("Stripe is not configured");
+  if (!key || !stripeCredentialsConfigured()) {
+    throw new Error("Stripe is not configured for this environment");
+  }
   stripeClient ??= new Stripe(key);
   return stripeClient;
 }

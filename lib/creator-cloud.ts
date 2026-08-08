@@ -12,6 +12,7 @@ import {
 } from "./creator-cloud-types";
 import { isActiveSubscription } from "./entitlements";
 import { configuredAppUrl } from "./app-url";
+import { stripeCredentialsConfigured } from "./provider-environment";
 
 export interface SubscriptionRecord {
   userId: string;
@@ -37,7 +38,7 @@ export function cloudStoreConfigured(): boolean {
 
 export function billingConfigured(): boolean {
   return Boolean(
-    process.env.STRIPE_SECRET_KEY &&
+    stripeCredentialsConfigured() &&
       process.env.STRIPE_WEBHOOK_SECRET &&
       process.env.STRIPE_PRICE_CREATOR_MONTHLY &&
       process.env.STRIPE_PRICE_CREATOR_ANNUAL &&
@@ -246,7 +247,8 @@ export async function accountSummary(): Promise<CreatorCloudAccount> {
   return {
     authConfigured: authConfigured(),
     billingConfigured: billingConfigured(),
-    foundingOfferAvailable: Boolean(process.env.STRIPE_PRICE_FOUNDING_ANNUAL),
+    foundingOfferAvailable:
+      billingConfigured() && Boolean(process.env.STRIPE_PRICE_FOUNDING_ANNUAL),
     cloudConfigured: cloudStoreConfigured(),
     syncRequiresCreator: syncRequiresCreator(),
     signedIn: Boolean(userId),

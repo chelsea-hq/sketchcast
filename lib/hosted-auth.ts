@@ -1,9 +1,9 @@
 import "server-only";
 
+import { clerkCredentialsConfigured } from "./provider-environment";
+
 export function authConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY
-  );
+  return clerkCredentialsConfigured();
 }
 export async function hostedUserId(): Promise<string | null> {
   if (!authConfigured()) return null;
