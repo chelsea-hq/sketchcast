@@ -7,12 +7,15 @@ import { useRouter } from "next/navigation";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import Board from "./Board";
+import CreatorHome from "./CreatorHome";
 import ProjectSwitcher from "./ProjectSwitcher";
 import RecordBar, { type RecState } from "./RecordBar";
+import RecordingPreflight from "./RecordingPreflight";
 import SettingsModal from "./SettingsModal";
 import SidePanel, { TAB_LABELS, ToolIcon, type Tab } from "./SidePanel";
 import SyncModal from "./SyncModal";
 import TakeEditor from "./TakeEditor";
+import TakeReady from "./TakeReady";
 import Teleprompter, { type PrompterSettings } from "./Teleprompter";
 import WebcamBubble from "./WebcamBubble";
 import type { Take } from "./panels/TakesPanel";
@@ -23,6 +26,7 @@ import {
   insertMermaidIntoScene,
 } from "@/lib/board-actions";
 import type { EditedExport } from "@/lib/take-editor";
+import type { CreatorStartMode } from "@/lib/creator-flow";
 import {
   FORMATS,
   defaultWebcamLayout,
@@ -33,6 +37,7 @@ import {
 import { SessionRecorder } from "@/lib/recorder";
 import {
   createProject,
+  countStoredTakes,
   deleteProject,
   initializeProjectVault,
   listStoredTakes,
@@ -87,6 +92,11 @@ export default function Studio() {
   const [editingTake, setEditingTake] = useState<Take | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [workspaceView, setWorkspaceView] = useState<"home" | "studio">("home");
+  const [takeCounts, setTakeCounts] = useState<Record<string, number>>({});
+  const [preflightOpen, setPreflightOpen] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [readyTakeId, setReadyTakeId] = useState<string | null>(null);
   const [recoveryReady, setRecoveryReady] = useState(false);
   const [projects, setProjects] = useState<SketchProject[]>([]);
   const [activeProjectId, setActiveProjectIdState] = useState("");
@@ -114,6 +124,7 @@ export default function Studio() {
   const deletedTakeIdsRef = useRef(new Set<string>());
   const draftValuesRef = useRef({ format, script, webcam });
   const sceneRef = useRef<ProjectSnapshot["scene"] | null>(null);
+  const countdownTimerRef = useRef<number | null>(null);
 
   // Keep a ref in sync so the recorder reads live webcam layout every frame
   useEffect(() => {
@@ -179,6 +190,13 @@ export default function Studio() {
         setScript(vault.activeProject.script);
         setWebcam(vault.activeProject.webcam);
         pendingProjectRef.current = vault.activeProject;
+        recoveryReadyRef.current = true;
+        setRecoveryReady(true);
+        void Promise.all(
+          vault.projects.map(async (project) => [project.id, await countStoredTakes(project.id)] as const)
+        ).then((entries) => {
+          if (!cancelled) setTakeCounts(Object.fromEntries(entries));
+        }).catch((error) => console.error("Could not count local takes", error));
         if (apiRef.current) restoreProject(apiRef.current, vault.activeProject);
         void requestDurableBrowserStorage();
       })
@@ -191,6 +209,7 @@ export default function Studio() {
     return () => {
       cancelled = true;
       if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
+      if (countdownTimerRef.current) window.clearTimeout(countdownTimerRef.current);
       for (const take of takesRef.current) URL.revokeObjectURL(take.url);
     };
   }, [restoreProject]);
@@ -216,10 +235,11 @@ export default function Studio() {
   );
 
   const persistTake = useCallback(async (take: Take, blob: Blob) => {
+    const projectId = activeProjectIdRef.current;
     try {
       await storeTake({
         id: take.id,
-        projectId: activeProjectIdRef.current,
+        projectId,
         blob,
         filename: take.filename,
         sizeMB: take.sizeMB,
@@ -237,6 +257,10 @@ export default function Studio() {
       setTakes((current) =>
         current.map((item) => (item.id === take.id ? { ...item, persisted: true } : item))
       );
+      setTakeCounts((current) => ({
+        ...current,
+        [projectId]: (current[projectId] ?? 0) + 1,
+      }));
       return true;
     } catch (error) {
       console.error("Could not save take to Recovery Vault", error);
@@ -378,9 +402,7 @@ export default function Studio() {
           setTakes((prev) => [take, ...prev]);
           void persistTake(take, result.blob);
           setRecState("idle");
-          // Jump straight to the take so there's no hunting for it
-          setPanelTab("takes");
-          setPanelOpen(true);
+          setReadyTakeId(take.id);
           toast.success("Take captured. Recovery Vault is saving it locally.");
         },
       });
@@ -395,6 +417,31 @@ export default function Studio() {
       console.error(error);
       toast.error("Recording isn't supported in this browser. Try Chrome or Edge.");
     }
+  };
+
+  const cancelCountdown = () => {
+    if (countdownTimerRef.current) window.clearTimeout(countdownTimerRef.current);
+    countdownTimerRef.current = null;
+    setCountdown(null);
+  };
+
+  const beginCountdown = () => {
+    setPreflightOpen(false);
+    setPanelOpen(false);
+    let next = 3;
+    setCountdown(next);
+    const tick = () => {
+      next -= 1;
+      if (next <= 0) {
+        countdownTimerRef.current = null;
+        setCountdown(null);
+        startRecording();
+        return;
+      }
+      setCountdown(next);
+      countdownTimerRef.current = window.setTimeout(tick, 900);
+    };
+    countdownTimerRef.current = window.setTimeout(tick, 900);
   };
 
   const insertMermaid = useCallback(
@@ -442,22 +489,22 @@ export default function Studio() {
     [api]
   );
 
-  const handleEditedExport = (result: EditedExport) => {
+  const handleEditedExport = (result: EditedExport, outputFormat: FormatKey) => {
     const url = URL.createObjectURL(result.blob);
     const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
-    const sourceFormat = editingTake?.format ?? format;
     const take: Take = {
       id: `take_${Date.now()}`,
       url,
-      filename: `sketchcast-${sourceFormat.replace(":", "x")}-edited-${stamp}.${result.extension}`,
+      filename: `sketchcast-${outputFormat.replace(":", "x")}-edited-${stamp}.${result.extension}`,
       sizeMB: result.blob.size / (1024 * 1024),
       seconds: result.durationMs / 1000,
-      format: sourceFormat,
+      format: outputFormat,
       persisted: false,
     };
     setTakes((prev) => [take, ...prev]);
     void persistTake(take, result.blob);
     setPanelTab("takes");
+    setReadyTakeId(take.id);
   };
 
   const handleSaveTemplate = (name: string) => {
@@ -504,6 +551,16 @@ export default function Studio() {
   };
 
   const handleDeleteTake = (id: string) => {
+    const stored = takesRef.current.find((take) => take.id === id)?.persisted;
+    if (stored) {
+      setTakeCounts((current) => ({
+        ...current,
+        [activeProjectIdRef.current]: Math.max(
+          0,
+          (current[activeProjectIdRef.current] ?? 0) - 1
+        ),
+      }));
+    }
     deletedTakeIdsRef.current.add(id);
     setTakes((prev) => {
       const target = prev.find((t) => t.id === id);
@@ -591,12 +648,26 @@ export default function Studio() {
     }
   };
 
-  const handleCreateProject = async (name: string) => {
+  const handleCreateProject = async (
+    name: string,
+    mode: CreatorStartMode = "blank"
+  ) => {
     try {
       if (activeProjectIdRef.current) await saveActiveProject();
       const project = await createProject(name);
       setProjects(await listProjects());
+      setTakeCounts((current) => ({ ...current, [project.id]: 0 }));
       await openProject(project);
+      setWorkspaceView("studio");
+      if (mode === "diagram") {
+        setPanelTab("ai");
+        setPanelOpen(true);
+      } else if (mode === "script") {
+        setPanelTab("script");
+        setPanelOpen(true);
+      } else {
+        setPanelOpen(false);
+      }
       toast.success(`Created “${project.name}”.`);
     } catch (error) {
       console.error("Could not create project", error);
@@ -623,6 +694,11 @@ export default function Studio() {
       await deleteProject(currentId);
       const remaining = await listProjects();
       setProjects(remaining);
+      setTakeCounts((current) => {
+        const nextCounts = { ...current };
+        delete nextCounts[currentId];
+        return nextCounts;
+      });
       await openProject(remaining.find((project) => project.id === next.id) ?? remaining[0]);
       toast.success("Project deleted from this device.");
     } catch (error) {
@@ -697,7 +773,13 @@ export default function Studio() {
             lastSyncedAt: new Date().toISOString(),
           });
       setProjects(await listProjects());
+      const importedTakeCount = await countStoredTakes(imported.id);
+      setTakeCounts((current) => ({
+        ...current,
+        [imported.id]: current[imported.id] ?? importedTakeCount,
+      }));
       await openProject(imported);
+      setWorkspaceView("studio");
       toast.success(`Unlocked “${imported.name}” from encrypted cloud sync.`);
     } catch (error) {
       console.error("Cloud pull failed", error);
@@ -707,6 +789,38 @@ export default function Studio() {
   };
 
   const activeProject = projects.find((project) => project.id === activeProjectId);
+  const readyTake = takes.find((take) => take.id === readyTakeId) ?? null;
+  const focusMode = countdown !== null || recState !== "idle";
+
+  const handleOpenFromHome = async (project: SketchProject) => {
+    if (recState !== "idle") return;
+    try {
+      await openProject(project, false);
+      setWorkspaceView("studio");
+      setPanelOpen(false);
+    } catch (error) {
+      console.error("Could not open project from Creator Home", error);
+      toast.error("That project could not be opened.");
+      recoveryReadyRef.current = true;
+      setRecoveryReady(true);
+    }
+  };
+
+  const handleShowProjects = async () => {
+    if (recState !== "idle") return;
+    try {
+      const saved = await saveActiveProject();
+      pendingProjectRef.current = saved;
+      apiRef.current = null;
+      setApi(null);
+      setProjects(await listProjects());
+      setPanelOpen(false);
+      setWorkspaceView("home");
+    } catch (error) {
+      console.error("Could not return to Creator Home", error);
+      toast.error("Your project is still open, but it could not be saved first.");
+    }
+  };
 
   const handleOpenSync = () => {
     if (account.syncRequiresCreator && account.plan !== "creator") {
@@ -730,15 +844,15 @@ export default function Studio() {
 
   return (
     <div className="studio-shell flex h-dvh flex-col overflow-hidden bg-[#090a0f] text-zinc-100">
-      <header className="relative z-30 flex min-h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] bg-[#0b0c11]/95 px-2.5 backdrop-blur-xl sm:gap-3 sm:px-4">
-        <button
+      <header className={`${focusMode ? "hidden" : "flex"} relative z-30 min-h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] bg-[#0b0c11]/95 px-2.5 backdrop-blur-xl sm:gap-3 sm:px-4`}>
+        {workspaceView === "studio" && <button
           type="button"
           onClick={() => setPanelOpen(true)}
           aria-label="Open creator tools"
           className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.045] text-white/70 transition hover:bg-white/[0.08] hover:text-white md:hidden"
         >
           <svg aria-hidden viewBox="0 0 20 20" className="h-[18px] w-[18px] fill-none stroke-current" strokeWidth="1.7" strokeLinecap="round"><path d="M4 5h12M4 10h12M4 15h12" /></svg>
-        </button>
+        </button>}
         <h1 className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-[-0.02em] text-white">
           <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#7657ff] shadow-[0_0_22px_rgba(118,87,255,0.28)]">
             <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 16.5 9 7l4 7 2.5-4L20 17"/><path d="M4 20h16"/></svg>
@@ -746,16 +860,25 @@ export default function Studio() {
           <span className="hidden sm:inline">Sketchcast <span className="font-normal text-white/35">Studio</span></span>
         </h1>
         <span className="mx-1 hidden h-5 w-px bg-white/[0.08] sm:block" aria-hidden />
-        <ProjectSwitcher
-          projects={projects}
-          activeProjectId={activeProjectId}
-          disabled={!recoveryReady || recState !== "idle"}
-          onSwitch={handleSwitchProject}
-          onCreate={handleCreateProject}
-          onRename={handleRenameProject}
-          onDelete={handleDeleteProject}
-          onOpenSync={handleOpenSync}
-        />
+        {workspaceView === "studio" ? (
+          <>
+            <button type="button" onClick={handleShowProjects} disabled={recState !== "idle"} aria-label="Back to projects" className="inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-2 text-xs font-semibold text-white/42 transition hover:bg-white/[0.08] hover:text-white sm:min-h-9 sm:min-w-0 sm:rounded-full sm:border-0 sm:bg-transparent disabled:opacity-30">
+              <span aria-hidden>←</span> <span className="hidden sm:inline">Projects</span>
+            </button>
+            <ProjectSwitcher
+              projects={projects}
+              activeProjectId={activeProjectId}
+              disabled={!recoveryReady || recState !== "idle"}
+              onSwitch={handleSwitchProject}
+              onCreate={handleCreateProject}
+              onRename={handleRenameProject}
+              onDelete={handleDeleteProject}
+              onOpenSync={handleOpenSync}
+            />
+          </>
+        ) : (
+          <span className="text-xs font-semibold text-white/34">Projects</span>
+        )}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] sm:gap-2">
           <Link
             href="/account"
@@ -790,8 +913,21 @@ export default function Studio() {
         </div>
       </header>
 
+      {workspaceView === "home" ? (
+        <CreatorHome
+          projects={projects}
+          activeProjectId={activeProjectId}
+          takeCounts={takeCounts}
+          recoveryReady={recoveryReady}
+          onOpen={handleOpenFromHome}
+          onCreate={handleCreateProject}
+          onOpenSync={handleOpenSync}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
+      ) : (
+      <>
       <div className="flex min-h-0 flex-1">
-        {panelOpen && (
+        {panelOpen && !focusMode && (
           <div
             className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
             onClick={() => setPanelOpen(false)}
@@ -800,7 +936,7 @@ export default function Studio() {
         <aside
           className={`${
             panelOpen ? "translate-y-0" : "pointer-events-none translate-y-[120%]"
-          } fixed inset-x-2 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 flex h-[min(70dvh,620px)] shrink-0 transform flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#111218] shadow-[0_30px_100px_rgba(0,0,0,0.65)] transition-transform duration-300 md:pointer-events-auto md:static md:z-auto md:h-auto md:w-[330px] md:translate-y-0 md:rounded-none md:border-y-0 md:border-l-0 md:border-r md:border-white/[0.07] md:bg-[#0d0e13] md:shadow-none md:transition-none xl:w-[350px]`}
+          } ${focusMode ? "hidden" : "flex"} fixed inset-x-2 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 h-[min(70dvh,620px)] shrink-0 transform flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#111218] shadow-[0_30px_100px_rgba(0,0,0,0.65)] transition-transform duration-300 md:pointer-events-auto md:static md:z-auto md:h-auto md:w-[330px] md:translate-y-0 md:rounded-none md:border-y-0 md:border-l-0 md:border-r md:border-white/[0.07] md:bg-[#0d0e13] md:shadow-none md:transition-none xl:w-[350px]`}
         >
           <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-white/[0.07] px-4 md:hidden">
             <span className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -848,7 +984,7 @@ export default function Studio() {
         <main className="flex min-w-0 flex-1 flex-col pb-[calc(4.65rem+env(safe-area-inset-bottom))] md:pb-0">
           <div
             ref={boardWrapRef}
-            className="relative min-h-0 flex-1 bg-[#090a0f] p-2 sm:p-3"
+            className={`relative min-h-0 flex-1 bg-[#090a0f] ${focusMode ? "p-0" : "p-2 sm:p-3"}`}
           >
             <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-full border border-black/10 bg-white/90 px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.13em] text-black/55 shadow-sm backdrop-blur md:hidden">
               Prep mode
@@ -920,7 +1056,7 @@ export default function Studio() {
             onTogglePrompter={() =>
               setPrompter((p) => ({ ...p, visible: !p.visible }))
             }
-            onRecord={startRecording}
+            onRecord={() => setPreflightOpen(true)}
             onPause={() => {
               recorderRef.current?.pause();
               setRecState("paused");
@@ -934,7 +1070,7 @@ export default function Studio() {
         </main>
       </div>
 
-      <nav aria-label="Creator tools" className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-[#0b0c11]/95 px-2 pt-1.5 pb-[calc(0.35rem+env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
+      {!focusMode && <nav aria-label="Creator tools" className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-[#0b0c11]/95 px-2 pt-1.5 pb-[calc(0.35rem+env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           {(Object.keys(TAB_LABELS) as Tab[]).map((key) => (
             <button
@@ -954,7 +1090,50 @@ export default function Studio() {
             </button>
           ))}
         </div>
-      </nav>
+      </nav>}
+      </>
+      )}
+
+      {preflightOpen && workspaceView === "studio" && (
+        <RecordingPreflight
+          recoveryReady={recoveryReady}
+          boardReady={!!api}
+          hasSession={!!stream}
+          camOn={camOn}
+          micOn={micOn}
+          hasScript={!!script.trim()}
+          format={format}
+          onFormatChange={changeFormat}
+          onStartSession={startSession}
+          onClose={() => setPreflightOpen(false)}
+          onStartCountdown={beginCountdown}
+        />
+      )}
+
+      {countdown !== null && (
+        <div className="fixed inset-0 z-[85] grid place-items-center bg-black/55 backdrop-blur-[2px]">
+          <div className="text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/45">Recording starts in</p>
+            <div key={countdown} className="mt-3 text-[132px] font-semibold leading-none tracking-[-0.08em] text-white drop-shadow-2xl">{Math.max(1, countdown)}</div>
+            <button type="button" onClick={cancelCountdown} className="mt-6 min-h-11 rounded-full border border-white/15 bg-black/25 px-5 text-xs font-semibold text-white/68 hover:bg-white/10 hover:text-white">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {readyTake && (
+        <TakeReady
+          take={readyTake}
+          onEdit={() => {
+            setEditingTake(readyTake);
+            setReadyTakeId(null);
+          }}
+          onRecordAgain={() => {
+            setReadyTakeId(null);
+            setPreflightOpen(true);
+          }}
+          onDone={() => setReadyTakeId(null)}
+        />
+      )}
 
       {editingTake && (
         <TakeEditor

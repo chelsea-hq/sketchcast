@@ -2,8 +2,9 @@ import type { FormatKey, WebcamLayout } from "./formats";
 import type { SketchTemplate } from "./templates";
 
 const DB_NAME = "sketchcast-recovery";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const TAKES_STORE = "takes";
+const TAKES_PROJECT_INDEX = "projectId";
 const PROJECTS_STORE = "drafts";
 const SETTINGS_STORE = "settings";
 const ACTIVE_PROJECT_KEY = "activeProjectId";
@@ -83,8 +84,11 @@ function openVault(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(TAKES_STORE)) {
-        db.createObjectStore(TAKES_STORE, { keyPath: "id" });
+      const takesStore = db.objectStoreNames.contains(TAKES_STORE)
+        ? request.transaction?.objectStore(TAKES_STORE)
+        : db.createObjectStore(TAKES_STORE, { keyPath: "id" });
+      if (takesStore && !takesStore.indexNames.contains(TAKES_PROJECT_INDEX)) {
+        takesStore.createIndex(TAKES_PROJECT_INDEX, "projectId", { unique: false });
       }
       if (!db.objectStoreNames.contains(PROJECTS_STORE)) {
         db.createObjectStore(PROJECTS_STORE, { keyPath: "id" });
@@ -257,11 +261,16 @@ export async function setActiveProjectId(projectId: string): Promise<void> {
 
 export async function listStoredTakes(projectId: string): Promise<StoredTake[]> {
   const records = await runRequest<StoredTake[]>(TAKES_STORE, "readonly", (store) =>
-    store.getAll()
+    store.index(TAKES_PROJECT_INDEX).getAll(projectId)
   );
-  return records
-    .filter((record) => record.projectId === projectId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return records.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** Counts local takes without hydrating their video blobs into application state. */
+export async function countStoredTakes(projectId: string): Promise<number> {
+  return runRequest<number>(TAKES_STORE, "readonly", (store) =>
+    store.index(TAKES_PROJECT_INDEX).count(projectId)
+  );
 }
 
 export async function storeTake(take: StoredTake): Promise<void> {
