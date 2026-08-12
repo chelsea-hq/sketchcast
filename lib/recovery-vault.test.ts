@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   __testing,
+  countStoredTakes,
   createProject,
   deleteProject,
   initializeProjectVault,
@@ -89,7 +90,10 @@ describe("named project Recovery Vault", () => {
 
     expect(await listStoredTakes(initial.activeProject.id)).toHaveLength(1);
     expect(await listStoredTakes(second.id)).toHaveLength(1);
+    expect(await countStoredTakes(initial.activeProject.id)).toBe(1);
+    expect(await countStoredTakes(second.id)).toBe(1);
     await deleteProject(second.id);
     expect(await listStoredTakes(second.id)).toHaveLength(0);
+    expect(await countStoredTakes(second.id)).toBe(0);
   });
 });
