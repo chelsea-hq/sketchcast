@@ -20,7 +20,7 @@ The replacement candidate passed frozen installation, lint, typechecking,
 177 unit/component tests, the production build, and four production-mode Chromium
 workflows. Independent Security and Quality passed the reviewed local scope;
 the following local repository hygiene review is complete. The
-[handoff](library/requirements/in-work/prd-005-community-project-toolkit/reports/handoff-2026-10-16.md)
+[handoff](library/requirements/completed/prd-005-community-project-toolkit/reports/handoff-2026-10-16.md)
 records remaining maintenance recommendations and remote release checks.
 
 ## Make the core loop dependable

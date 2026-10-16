@@ -5,7 +5,7 @@ Record revision/local changes, OS, browser/version, viewport, server URL, mode,
 and results. Leave untested boxes unchecked. Local QA, preview, and production
 are separate evidence layers.
 
-The [October 16 local handoff](../library/requirements/in-work/prd-005-community-project-toolkit/reports/handoff-2026-10-16.md)
+The [October 16 local handoff](../library/requirements/completed/prd-005-community-project-toolkit/reports/handoff-2026-10-16.md)
 records the exact replacement candidate, 177 unit/component tests, four
 production-mode Chromium workflows, screenshots, and downloaded recording.
 The source/config fingerprints bind that evidence to the tested implementation.
@@ -18,8 +18,9 @@ No advisory is suppressed. The replacement candidate passed frozen installation,
 lint, typechecking, 177 unit/component tests including all 17 dependency
 contracts, the production build, and four production-mode Chromium workflows.
 Independent Security and Quality passed the reviewed local scope, followed by
-a completed local repository hygiene review. Remote settings and CI remain
-unverified.
+a completed local repository hygiene review. Remote CI and production Community checks subsequently passed; see the
+[production release record](../library/requirements/completed/prd-005-community-project-toolkit/reports/production-release-2026-10-16.md).
+Unchecked device and optional service checks below remain unverified.
 
 Use the remaining checklist for candidate acceptance, manual device checks,
 hosted-service checks, and release approval. Unchecked items are tasks, not
@@ -27,7 +28,7 @@ claims of a pass. Local audit or test success does not authorize publication.
 
 ## Clean install
 
-- [ ] New source directory, with no `.env.local`, `.next`, dependencies, or personal notes copied over.
+- [x] New source directory, with no `.env.local`, `.next`, dependencies, or personal notes copied over.
 - [ ] Retain the Node 22 frozen-install, `npm run check`, and both audit results for the exact release candidate; rerun if source or dependencies change.
 - [ ] Production server: `/studio` works with no hosted accounts or provider keys.
 - [ ] Landing and studio: no unexpected console errors or horizontal overflow.
@@ -99,8 +100,8 @@ settings and blocks third-party browser requests. Keep that port available.
 ## Release
 
 - [x] October 16 local candidate: Security completed first, followed by passing Quality reports for PRD 005 / IRD 029 / IRD 030 and local repository hygiene review. Re-evaluate relevant changes before release.
-- [ ] Review history for secrets/private material and asset/license provenance.
+- [x] Review history for secrets/private material and asset/license provenance.
 - [ ] Verify current screenshots and a short demo with synthetic content.
-- [ ] Verify the deployment preview's exact URL and revision.
-- [ ] Obtain maintainer approval for merge/publication.
-- [ ] Verify production after release and document remaining limitations.
+- [x] Verify the deployment preview's exact URL and revision.
+- [x] Obtain maintainer approval for merge/publication.
+- [x] Verify production after release and document remaining limitations.

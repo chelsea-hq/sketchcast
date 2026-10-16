@@ -2,7 +2,7 @@
 
 Notable changes to Sketchcast are recorded here.
 
-## Unreleased
+## 2026-10-16
 
 ### Community project toolkit
 

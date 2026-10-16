@@ -1,7 +1,7 @@
 ---
 id: ird-030
 title: Replace vulnerable brace-pattern processing
-status: in-work
+status: completed
 owner: Chelsea Hulin
 created: 2026-10-16
 ---
@@ -83,3 +83,13 @@ Formal [Security cleared the scope](../prd-005-community-project-toolkit/reports
 The subsequent [Repository Health review](../prd-005-community-project-toolkit/reports/repository-health-2026-10-16.md)
 is complete. All six local acceptance items are fulfilled; remaining maintainer
 hygiene recommendations and remote release checks are recorded in the handoff.
+
+
+## Production completion, October 16, 2026
+
+Shipped in [PR 44](https://github.com/chelsea-hq/sketchcast/pull/44), merge
+`94a4a8d45db89a907f38dd433eb926fe664023d6`, with deployed application source
+`9b7f8b165cdcdffbf7ee7b55a36bfe59d704a997`. The production Community workflows
+passed after promotion. Earlier local checkpoints above remain historical.
+See the [production release record](../prd-005-community-project-toolkit/reports/production-release-2026-10-16.md)
+for exact deployment, checks, rollback, and remaining limits.

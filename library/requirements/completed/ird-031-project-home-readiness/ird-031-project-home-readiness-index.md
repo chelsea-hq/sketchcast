@@ -1,7 +1,7 @@
 ---
 id: ird-031
 title: Preserve readiness when leaving an unmounted board
-status: in-work
+status: completed
 created: 2026-10-16
 ---
 
@@ -47,6 +47,16 @@ preservation. Existing failure handling is covered separately.
 The final local candidate passed lint, strict typecheck, 184 tests across 24
 files, production build, and five Chromium workflows, including decoded
 1920 × 1080 recording playback and the synthetic recording-error path.
-[Security cleared the final delta](../ird-031-project-home-readiness/reports/security-2026-10-16.md)
+[Security cleared the final delta](reports/security-2026-10-16.md)
 before [independent Quality passed](qa/2026-10-16-qa-report.md).
 Hosted verification and production promotion remain separate release steps.
+
+
+## Production completion, October 16, 2026
+
+Shipped in [PR 44](https://github.com/chelsea-hq/sketchcast/pull/44), merge
+`94a4a8d45db89a907f38dd433eb926fe664023d6`, with deployed application source
+`9b7f8b165cdcdffbf7ee7b55a36bfe59d704a997`. The production Community workflows
+passed after promotion. Earlier local checkpoints above remain historical.
+See the [production release record](../prd-005-community-project-toolkit/reports/production-release-2026-10-16.md)
+for exact deployment, checks, rollback, and remaining limits.

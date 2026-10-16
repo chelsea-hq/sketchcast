@@ -1,7 +1,7 @@
 ---
 id: ird-029
 title: Preserve project scenes and confirm storage commits
-status: in-work
+status: completed
 created: 2026-10-15
 ---
 
@@ -58,3 +58,13 @@ for candidate identity, test environment, and release limitations.
 Final [Quality report](qa/2026-10-16-qa-report.md): PASS, zero open findings.
 Independent Chromium failure/retry/download/reload checks also passed. Local
 acceptance is complete; the parent handoff records release boundaries.
+
+
+## Production completion, October 16, 2026
+
+Shipped in [PR 44](https://github.com/chelsea-hq/sketchcast/pull/44), merge
+`94a4a8d45db89a907f38dd433eb926fe664023d6`, with deployed application source
+`9b7f8b165cdcdffbf7ee7b55a36bfe59d704a997`. The production Community workflows
+passed after promotion. Earlier local checkpoints above remain historical.
+See the [production release record](../prd-005-community-project-toolkit/reports/production-release-2026-10-16.md)
+for exact deployment, checks, rollback, and remaining limits.
