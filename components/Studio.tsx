@@ -244,6 +244,9 @@ export default function Studio() {
 
   const handleSceneChange = useCallback<NonNullable<React.ComponentProps<typeof Board>["onSceneChange"]>>(
     (elements, appState, files) => {
+      // A newly mounted canvas emits an empty scene before its API restores
+      // the pending project. Keep the saved snapshot authoritative until then.
+      if (pendingProjectRef.current) return;
       sceneRef.current = {
         elements: elements.map((element) => ({ ...element })),
         files: files as unknown as Record<string, unknown>,
@@ -398,6 +401,12 @@ export default function Studio() {
           setRecState("idle");
           setReadyTakeId(take.id);
           toast.success("Take captured. Recovery Vault is saving it locally.");
+        },
+        onError: () => {
+          recorderRef.current = null;
+          setRecState("idle");
+          setPrompter((current) => ({ ...current, playing: false }));
+          toast.error("Recording failed. This take was not saved. Please try again.");
         },
       });
       recorderRef.current = recorder;
@@ -882,10 +891,15 @@ export default function Studio() {
     setProjectBusy(true);
     try {
       const saved = await saveActiveProject();
+      const latestProjects = await listProjects();
       pendingProjectRef.current = saved;
       apiRef.current = null;
       setApi(null);
-      setProjects(await listProjects());
+      setProjects(latestProjects);
+      // Board may not have delivered its API before this return. Home has a
+      // saved snapshot and must not wait for the canvas it is unmounting.
+      recoveryReadyRef.current = true;
+      setRecoveryReady(true);
       setPanelOpen(false);
       setWorkspaceView("home");
     } catch (error) {

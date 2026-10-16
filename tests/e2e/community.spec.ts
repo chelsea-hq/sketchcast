@@ -194,3 +194,36 @@ test("starter records a board-only take that can be downloaded", async ({ page }
   await download.saveAs(testInfo.outputPath(download.suggestedFilename()));
   await page.screenshot({ path: testInfo.outputPath("recorded-take.png") });
 });
+
+test("a browser recording error returns to idle without saving a partial take", async ({ page }) => {
+  await page.addInitScript(() => {
+    const start = MediaRecorder.prototype.start;
+    MediaRecorder.prototype.start = function (timeslice?: number) {
+      start.call(this, timeslice);
+      setTimeout(() => this.dispatchEvent(new Event("error")), 300);
+    };
+  });
+  await home(page);
+  await page.getByRole("button", { name: /Explain a process/ }).click();
+  await expect(page.locator(".excalidraw canvas").first()).toBeVisible();
+  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page.getByRole("button", { name: "Start recording", exact: true }).click();
+  await expect(page.getByText("Recording failed. This take was not saved. Please try again.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Record", exact: true })).toBeEnabled();
+  await expect(page.getByRole("link", { name: "Download original" })).toHaveCount(0);
+  const storedTakes = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("sketchcast-recovery");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      return await new Promise<number>((resolve, reject) => {
+        const request = db.transaction("takes").objectStore("takes").count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    } finally { db.close(); }
+  });
+  expect(storedTakes).toBe(0);
+});

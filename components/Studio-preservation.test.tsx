@@ -16,10 +16,10 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/components/useCreatorCloud", () => ({ useCreatorCloud: () => ({ account: { plan: "community", limits: { templates: 3 } } }) }));
 vi.mock("./useRecordingFrame", () => ({ useRecordingFrame: () => ({ x: 0, y: 0, w: 960, h: 540 }) }));
 vi.mock("@/lib/board-actions", () => ({ applyTemplateScene: vi.fn() }));
-vi.mock("./Board", () => ({ default: () => null }));
+vi.mock("./Board", () => ({ default: ({ onSceneChange }: { onSceneChange: (elements: unknown[], appState: { viewBackgroundColor: string }, files: Record<string, unknown>) => void }) => <button onClick={() => onSceneChange([], { viewBackgroundColor: "#ffffff" }, {})}>Emit initial empty board</button> }));
 vi.mock("./RecordBar", () => ({ default: () => null }));
 vi.mock("./SidePanel", () => ({ default: () => null, TAB_LABELS: {}, ToolIcon: () => null }));
-vi.mock("./CreatorHome", () => ({ default: ({ onCreate, onOpen }: { onCreate: (name: string) => void; onOpen: (project: unknown) => void }) => <><button onClick={() => onCreate("New lesson")}>Create test project</button><button onClick={() => onOpen(mocks.project)}>Open test project</button></> }));
+vi.mock("./CreatorHome", () => ({ default: ({ onCreate, onOpen, recoveryReady }: { onCreate: (name: string) => void; onOpen: (project: unknown) => void; recoveryReady: boolean }) => <><span>{recoveryReady ? "Projects ready" : "Projects opening"}</span><button onClick={() => onCreate("New lesson")}>Create test project</button><button onClick={() => onOpen(mocks.project)}>Open test project</button></> }));
 vi.mock("@/lib/recovery-vault", () => ({
   initializeProjectVault: async () => ({ projects: [mocks.project], activeProject: mocks.project, takes: [] }),
   countStoredTakes: async () => 0,
@@ -73,6 +73,44 @@ describe("project preservation before the board mounts", () => {
     await act(async () => retry.click());
     expect(container.querySelector('[role="alert"]')).toBeNull();
     expect(mocks.save).toHaveBeenLastCalledWith("existing", expect.objectContaining({ scene: mocks.project.scene }));
+  });
+
+  it("keeps projects usable when returning home before the board API is ready", async () => {
+    await act(async () => root.render(<Studio />));
+    const create = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Create test project")!;
+    await act(async () => create.click());
+    // Board deliberately never delivers onApiReady. A quick return must not
+    // rely on the callback from a canvas that is about to unmount.
+    const back = container.querySelector<HTMLButtonElement>('[aria-label="Back to projects"]')!;
+    await act(async () => back.click());
+    expect(container.textContent).toContain("Projects ready");
+    expect(container.textContent).not.toContain("Opening vault");
+    expect(mocks.save).toHaveBeenLastCalledWith("new", expect.objectContaining({ scene: mocks.project.scene }));
+  });
+
+  it("does not report projects ready when returning home fails to save", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await act(async () => root.render(<Studio />));
+    const create = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Create test project")!;
+    await act(async () => create.click());
+    mocks.save.mockRejectedValueOnce(new Error("Synthetic quota failure"));
+    const back = container.querySelector<HTMLButtonElement>('[aria-label="Back to projects"]')!;
+    await act(async () => back.click());
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Your latest changes could not be saved");
+    expect(container.textContent).not.toContain("Projects ready");
+    expect(container.querySelector('[aria-label="Back to projects"]')).not.toBeNull();
+  });
+
+  it("preserves a pending project when the board emits its initial empty scene", async () => {
+    await act(async () => root.render(<Studio />));
+    const open = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Open test project")!;
+    await act(async () => open.click());
+    const initialChange = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Emit initial empty board")!;
+    await act(async () => initialChange.click());
+    const back = container.querySelector<HTMLButtonElement>('[aria-label="Back to projects"]')!;
+    await act(async () => back.click());
+    expect(mocks.save).toHaveBeenLastCalledWith("existing", expect.objectContaining({ scene: mocks.project.scene }));
+    expect(container.textContent).toContain("Projects ready");
   });
 
   it("blocks creation while a home project is still opening", async () => {

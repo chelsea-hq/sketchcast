@@ -31,6 +31,8 @@ export interface RecorderOptions {
   /** Read the webcam layout each frame so live tweaks show up in the recording */
   getWebcam: () => WebcamLayout;
   onStop: (result: RecordingResult) => void;
+  /** A failed take is discarded and never delivered to onStop. */
+  onError: (error: Error) => void;
 }
 
 export interface RecordingResult {
@@ -84,15 +86,36 @@ export class SessionRecorder {
       const audioTrack = this.opts.micStream?.getAudioTracks()[0];
       if (audioTrack) stream.addTrack(audioTrack);
 
-      this.recorder = new MediaRecorder(stream, {
+      const recorder = new MediaRecorder(stream, {
         mimeType,
         videoBitsPerSecond: 8_000_000,
       });
+      this.recorder = recorder;
+      let failed = false;
       this.chunks = [];
-      this.recorder.ondataavailable = (e) => {
+      recorder.ondataavailable = (e) => {
+        if (failed || this.recorder !== recorder) return;
         if (e.data.size > 0) this.chunks.push(e.data);
       };
-      this.recorder.onstop = () => {
+      recorder.onerror = (event) => {
+        if (failed || this.recorder !== recorder) return;
+        failed = true;
+        // The browser stops the recorder before emitting error, followed by
+        // dataavailable and stop. Ignore those events and any stale callbacks.
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        recorder.onerror = null;
+        if (recorder.state !== "inactive") recorder.stop();
+        this.chunks = [];
+        this.recorder = null;
+        this.releaseCapture();
+        const detail = "error" in event ? event.error : undefined;
+        this.opts.onError(
+          detail instanceof Error ? detail : new Error("Recording failed. Please try again.")
+        );
+      };
+      recorder.onstop = () => {
+        if (failed || this.recorder !== recorder) return;
         this.releaseCapture();
         const blob = new Blob(this.chunks, { type: mimeType });
         this.chunks = [];
@@ -116,6 +139,7 @@ export class SessionRecorder {
       if (this.recorder) {
         this.recorder.ondataavailable = null;
         this.recorder.onstop = null;
+        this.recorder.onerror = null;
         if (this.recorder.state !== "inactive") this.recorder.stop();
         this.recorder = null;
       }

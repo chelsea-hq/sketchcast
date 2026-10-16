@@ -12,15 +12,14 @@ created: 2026-10-15
 
 Chelsea requested modernization and useful open-source features, including use
 of Wasp skills and agents. This slice makes the account-free creator workflow
-portable, easier to start, and safer to maintain. All work is local; publication,
-push, merge, deployment, and provider spending need separate authorization.
+portable, easier to start, and safer to maintain. Chelsea authorized production release on October 16, 2026. Provider spending
+and unrelated account or infrastructure changes remain outside this release.
 
 ## Current checkout
 
-`/Users/chelsea/Projects/sketchcast`, branch `codex/open-source-readiness`, base
-`40c3466`. PRD 004 and its uncommitted changes predate this session and are
-preserved. Private knowledge and notes are excluded from this work. The source
-backup and hash manifest are `/tmp/sketchcast-preserve-20261015/`.
+Branch `codex/open-source-readiness`, initial base `40c3466`. PRD 004 work
+predates this session and is preserved. Private knowledge and notes are excluded
+from the public release. Preservation receipts remain in the local handoff.
 
 ## Acceptance
 
@@ -82,7 +81,9 @@ checkout, owned files, receipts, preservation, and release limitations.
 The [October 15 handoff](reports/handoff-2026-10-15.md) retains the earlier
 blocked state and initial implementation evidence as history.
 
-No commit, push, merge, hosted Preview, publication, or deployment occurred.
-
-Local acceptance is complete. This plan remains in `in-work/` until separately
-authorized shipping; no release lifecycle promotion is implied by local QA.
+Release authorization followed local acceptance. Commit `72f2d17` was pushed
+as [PR 44](https://github.com/chelsea-hq/sketchcast/pull/44); CI and CodeQL passed.
+Hosted checks then exposed the canvas-readiness race in [IRD 031](../ird-031-project-home-readiness/ird-031-project-home-readiness-index.md).
+PR review also identified the recorder failure path addressed in [IRD 032](../ird-032-recorder-error-result/ird-032-recorder-error-result-index.md).
+These bounded deltas receive new Security and Quality checks before promotion.
+The primary production alias remains on the previous release at this checkpoint.

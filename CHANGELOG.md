@@ -23,6 +23,10 @@ Notable changes to Sketchcast are recorded here.
 
 ### Reliability
 
+- Keep Projects usable when returning before the board finishes loading, and
+  preserve saved scenes through that transition.
+- Report browser recording failures without saving a partial take; release
+  capture resources and let the creator record again.
 - Measure the recorded area when entering the studio from project home, so
   same-format projects do not keep a stale crop that clips the downloaded take.
 - Release recorder-owned canvas tracks after stopping or failed startup while
