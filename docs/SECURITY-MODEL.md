@@ -20,6 +20,25 @@ Browser storage is not a hardware vault. Malicious extensions, compromised
 devices, or a successful script injection could read it. Use separate provider
 keys with spend caps and revoke them if a device is lost.
 
+### Local project files
+
+`.sketchcast` files are unencrypted, user-requested downloads. They include the
+board, supported embedded raster images, script, format and webcam layout;
+recordings, provider configuration, recovery capabilities, and account state are
+excluded. Private text written into the board or script remains in the file.
+
+Import validates a versioned allowlist before creating a separate local project.
+Byte, object-depth, element, image-decoding and drawing-work limits constrain
+untrusted files. Remote images, SVG, web embeds and prototype keys are rejected;
+hyperlinks and unknown metadata are removed. The parser's exact limits are in
+[project-file.ts](../lib/project-file.ts) and the user guide is
+[PROJECT-FILES.md](PROJECT-FILES.md). File operations do not upload content.
+
+Vault operations report success after IndexedDB transaction completion. Failed
+autosaves show a persistent alert with retry and a download path for the current
+in-memory project. These controls do not guarantee unlimited storage or recovery
+after browser data is cleared.
+
 ### AI and transcription requests
 
 The browser sends a user-supplied key to a same-origin route. That route calls
@@ -91,6 +110,15 @@ API then verifies an active subscription for reads and writes.
 
 ## Web protections
 
+Excalidraw fonts are copied from the installed package to
+`public/excalidraw/fonts` before development and production builds. The board
+sets the package's asset path to `/excalidraw/`, keeping font requests on the
+same origin. Excalidraw also appends a CDN fallback to every FontFace source
+list; Chromium checks it when parsing the source. CSP permits only the pinned
+`https://esm.sh/@excalidraw/excalidraw@0.18.1/dist/prod/fonts/` directory in
+`font-src`. General CDN connections are not enabled. Revisit that pin when
+upgrading Excalidraw. Generated local assets are not committed.
+
 Sketchcast sends baseline content-type, frame, referrer, permissions, transport,
 and an enforced nonce-based Content Security Policy. The request proxy generates
 a new nonce per page request; Next.js attaches it to framework scripts. The policy
@@ -108,10 +136,19 @@ limits.
 
 ## Dependency handling
 
-`npm run audit:release` blocks high and critical production advisories. CI also
-runs lint, tests, and a production build. Dependabot and CodeQL provide ongoing
+`npm run audit:all` blocks high and critical advisories including contributor
+tooling; `npm run audit:release` checks production dependencies only. CI also
+runs lint, standalone typechecking, tests, and a production build. Dependabot and CodeQL provide ongoing
 review after publication.
 
 Do not use `npm audit fix --force` without reviewing every proposed version
 change. A scanner-clearing downgrade can create a larger compatibility or
 security problem.
+
+The current brace-pattern dependency uses an exact, source-reviewed third-party
+patch with bounded parsing and recursive traversal. Both installed consumers
+are checked by regression tests. Its provenance, remaining resource limits,
+and retirement criteria are recorded in
+[Dependency replacements](DEPENDENCY-REPLACEMENTS.md). Monitor the original
+upstream advisory as well as the fork; a renamed package's clean audit does
+not establish coverage for future upstream vulnerabilities.

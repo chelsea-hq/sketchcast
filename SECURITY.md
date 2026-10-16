@@ -43,7 +43,11 @@ The complete threat model and hosting guidance are in
 
 ## Dependency policy
 
-Pull requests must pass the production audit gate for high and critical
-advisories. Moderate advisories are reviewed for reachability and remediated or
+Pull requests must pass the full dependency audit gate for high and critical
+advisories, including contributor tooling. Moderate advisories are reviewed for reachability and remediated or
 documented with an owner and review date. Forced dependency downgrades are not
 accepted as security fixes.
+
+The temporary pinned brace-pattern replacement, its reviewed source, limits,
+and upstream monitoring requirements are documented in
+[Dependency replacements](docs/DEPENDENCY-REPLACEMENTS.md).

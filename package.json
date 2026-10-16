@@ -8,18 +8,24 @@
     "url": "https://github.com/chelsea-hq/sketchcast.git"
   },
   "engines": {
-    "node": "22.x"
+    "node": "^22.22.2"
   },
   "scripts": {
+    "predev": "node scripts/prepare-board-assets.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/prepare-board-assets.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run lint && npm test && npm run build",
-    "audit:release": "npm audit --omit=dev --audit-level=high"
+    "test:e2e": "playwright test",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "audit:release": "npm audit --omit=dev --audit-level=high",
+    "audit:all": "npm audit --audit-level=high"
   },
   "overrides": {
+    "braces": "npm:@dieub/braces-depth-guard@3.0.3-pn.3",
     "lodash-es": "^4.18.1",
     "nanoid": "^5.0.9",
     "postcss": "^8.5.10"
@@ -27,26 +33,29 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
     "@clerk/nextjs": "^7.5.17",
+    "@dieub/braces-depth-guard": "3.0.3-pn.3",
     "@excalidraw/excalidraw": "^0.18.1",
     "@excalidraw/mermaid-to-excalidraw": "^2.2.2",
     "@upstash/redis": "^1.38.0",
     "@vercel/blob": "^2.6.1",
-    "next": "16.3.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "sonner": "^2.0.7",
     "stripe": "^22.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
+    "eslint-config-next": "16.3.8",
     "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.10"
+    "vitest": "4.1.11"
   }
 }
