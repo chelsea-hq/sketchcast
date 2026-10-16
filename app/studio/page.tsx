@@ -1,5 +1,6 @@
 "use client";
 
+import "@/lib/excalidraw-assets";
 import dynamic from "next/dynamic";
 
 const Studio = dynamic(() => import("@/components/Studio"), {

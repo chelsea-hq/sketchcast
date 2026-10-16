@@ -28,7 +28,6 @@ import {
 import type { EditedExport } from "@/lib/take-editor";
 import type { CreatorStartMode } from "@/lib/creator-flow";
 import {
-  FORMATS,
   defaultWebcamLayout,
   type FormatKey,
   type WebcamCorner,
@@ -68,6 +67,10 @@ import {
   type SketchTemplate,
 } from "@/lib/templates";
 import { useCreatorCloud } from "@/components/useCreatorCloud";
+import { useRecordingFrame } from "./useRecordingFrame";
+import { parseProjectFile, projectFileName, serializeProjectFile } from "@/lib/project-file";
+import { STARTER_PROJECTS } from "@/lib/starter-projects";
+import type { ImportedProject } from "./ProjectImportDialog";
 
 const CORNER_ORDER: WebcamCorner[] = ["br", "bl", "tl", "tr"];
 
@@ -86,7 +89,6 @@ export default function Studio() {
   const [script, setScript] = useState("");
   const [seedConcept, setSeedConcept] = useState("");
   const [templates, setTemplates] = useState<SketchTemplate[]>(() => listTemplates());
-  const [crop, setCrop] = useState({ x: 0, y: 0, w: 960, h: 540 });
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelTab, setPanelTab] = useState<Tab>("ai");
   const [editingTake, setEditingTake] = useState<Take | null>(null);
@@ -98,6 +100,9 @@ export default function Studio() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [readyTakeId, setReadyTakeId] = useState<string | null>(null);
   const [recoveryReady, setRecoveryReady] = useState(false);
+  const [recoveryFailed, setRecoveryFailed] = useState(false);
+  const [autosaveFailed, setAutosaveFailed] = useState(false);
+  const [projectBusy, setProjectBusy] = useState(false);
   const [projects, setProjects] = useState<SketchProject[]>([]);
   const [activeProjectId, setActiveProjectIdState] = useState("");
   const [prompter, setPrompter] = useState<PrompterSettings>({
@@ -111,6 +116,7 @@ export default function Studio() {
 
   const boardWrapRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const crop = useRecordingFrame(stageRef, format, workspaceView === "studio");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const recorderRef = useRef<SessionRecorder | null>(null);
   const webcamLive: WebcamLayout = { ...webcam, visible: webcam.visible && camOn };
@@ -125,6 +131,18 @@ export default function Studio() {
   const draftValuesRef = useRef({ format, script, webcam });
   const sceneRef = useRef<ProjectSnapshot["scene"] | null>(null);
   const countdownTimerRef = useRef<number | null>(null);
+  const projectOperationRef = useRef(false);
+
+  const saveSnapshot = useCallback(async (id: string, snapshot: ProjectSnapshot) => {
+    try {
+      const saved = await storeProjectSnapshot(id, snapshot);
+      if (id === activeProjectIdRef.current) setAutosaveFailed(false);
+      return saved;
+    } catch (error) {
+      if (id === activeProjectIdRef.current) setAutosaveFailed(true);
+      throw error;
+    }
+  }, []);
 
   // Keep a ref in sync so the recorder reads live webcam layout every frame
   useEffect(() => {
@@ -141,12 +159,12 @@ export default function Studio() {
     if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
     recoveryTimerRef.current = window.setTimeout(() => {
       if (!sceneRef.current || !activeProjectIdRef.current) return;
-      void storeProjectSnapshot(activeProjectIdRef.current, {
+      void saveSnapshot(activeProjectIdRef.current, {
         ...draftValuesRef.current,
         scene: sceneRef.current,
       }).catch((error) => console.error("Recovery Vault autosave failed", error));
     }, 650);
-  }, [format, script, webcam]);
+  }, [format, script, webcam, saveSnapshot]);
 
   const restoreProject = useCallback(
     (nextApi: ExcalidrawImperativeAPI, project: SketchProject, announce = true) => {
@@ -189,6 +207,14 @@ export default function Studio() {
         setFormat(vault.activeProject.format);
         setScript(vault.activeProject.script);
         setWebcam(vault.activeProject.webcam);
+        // Creator Home mounts before Board. Keep the restored snapshot ready
+        // for saves triggered by creating, duplicating or importing from home.
+        sceneRef.current = vault.activeProject.scene;
+        draftValuesRef.current = {
+          format: vault.activeProject.format,
+          script: vault.activeProject.script,
+          webcam: vault.activeProject.webcam,
+        };
         pendingProjectRef.current = vault.activeProject;
         recoveryReadyRef.current = true;
         setRecoveryReady(true);
@@ -201,9 +227,11 @@ export default function Studio() {
         void requestDurableBrowserStorage();
       })
       .catch((error) => {
+        if (cancelled) return;
         console.error("Recovery Vault could not load", error);
-        recoveryReadyRef.current = true;
-        setRecoveryReady(true);
+        recoveryReadyRef.current = false;
+        setRecoveryReady(false);
+        setRecoveryFailed(true);
         toast.error("Local recovery is unavailable in this browser session.");
       });
     return () => {
@@ -225,13 +253,13 @@ export default function Studio() {
       if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
       recoveryTimerRef.current = window.setTimeout(() => {
         if (!sceneRef.current || !activeProjectIdRef.current) return;
-        void storeProjectSnapshot(activeProjectIdRef.current, {
+        void saveSnapshot(activeProjectIdRef.current, {
           ...draftValuesRef.current,
           scene: sceneRef.current,
         }).catch((error) => console.error("Recovery Vault autosave failed", error));
       }, 650);
     },
-    []
+    [saveSnapshot]
   );
 
   const persistTake = useCallback(async (take: Take, blob: Blob) => {
@@ -269,40 +297,6 @@ export default function Studio() {
       return false;
     }
   }, []);
-
-  // The workspace fills all available space; the recorded frame (crop) is a
-  // centered region holding the export aspect ratio. Everything outside the
-  // frame is backstage: visible to the creator, never recorded.
-  useEffect(() => {
-    const el = stageRef.current;
-    if (!el) return;
-    const spec = FORMATS[format];
-    const update = () => {
-      const cw = el.clientWidth;
-      const ch = el.clientHeight;
-      // Keep the recorded frame clear of Excalidraw's floating UI: toolbar
-      // band up top, zoom/undo island at the bottom
-      const topUi = ch < 520 ? 56 : 84;
-      const bottomUi = ch < 520 ? 44 : 56;
-      const pad = 16;
-      const scale = Math.min(
-        (cw - pad * 2) / spec.width,
-        (ch - topUi - bottomUi) / spec.height
-      );
-      const w = Math.max(180, Math.floor(spec.width * scale));
-      const h = Math.max(180, Math.floor(spec.height * scale));
-      setCrop({
-        x: Math.floor((cw - w) / 2),
-        y: Math.floor(topUi + (ch - topUi - bottomUi - h) / 2),
-        w,
-        h,
-      });
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [format]);
 
   const cropRef = useRef(crop);
   useEffect(() => {
@@ -593,16 +587,19 @@ export default function Studio() {
       window.clearTimeout(recoveryTimerRef.current);
       recoveryTimerRef.current = null;
     }
-    const saved = await storeProjectSnapshot(
+    const saved = await saveSnapshot(
       activeProjectIdRef.current,
       currentSnapshot()
     );
     setProjects(await listProjects());
     return saved;
-  }, [currentSnapshot]);
+  }, [currentSnapshot, saveSnapshot]);
 
   const openProject = useCallback(
     async (project: SketchProject, announce = true) => {
+      // Complete fallible storage work before changing the visible project.
+      const storedTakes = await listStoredTakes(project.id);
+      await setActiveProjectId(project.id);
       recoveryReadyRef.current = false;
       setRecoveryReady(false);
       if (recoveryTimerRef.current) window.clearTimeout(recoveryTimerRef.current);
@@ -610,7 +607,6 @@ export default function Studio() {
 
       activeProjectIdRef.current = project.id;
       setActiveProjectIdState(project.id);
-      await setActiveProjectId(project.id);
       setFormat(project.format);
       setScript(project.script);
       setWebcam(project.webcam);
@@ -620,7 +616,6 @@ export default function Studio() {
         webcam: project.webcam,
       };
       sceneRef.current = project.scene;
-      const storedTakes = await listStoredTakes(project.id);
       setTakes(
         storedTakes.map((take) => ({
           ...take,
@@ -635,7 +630,9 @@ export default function Studio() {
   );
 
   const handleSwitchProject = async (projectId: string) => {
-    if (projectId === activeProjectIdRef.current || recState !== "idle") return;
+    if (projectId === activeProjectIdRef.current || recState !== "idle" || projectOperationRef.current) return;
+    projectOperationRef.current = true;
+    setProjectBusy(true);
     try {
       await saveActiveProject();
       const project = projects.find((item) => item.id === projectId);
@@ -645,6 +642,9 @@ export default function Studio() {
       toast.error("That project could not be opened.");
       recoveryReadyRef.current = true;
       setRecoveryReady(true);
+    } finally {
+      projectOperationRef.current = false;
+      setProjectBusy(false);
     }
   };
 
@@ -652,6 +652,9 @@ export default function Studio() {
     name: string,
     mode: CreatorStartMode = "blank"
   ) => {
+    if (projectOperationRef.current) return;
+    projectOperationRef.current = true;
+    setProjectBusy(true);
     try {
       if (activeProjectIdRef.current) await saveActiveProject();
       const project = await createProject(name);
@@ -672,6 +675,68 @@ export default function Studio() {
     } catch (error) {
       console.error("Could not create project", error);
       toast.error("That project could not be created.");
+    } finally {
+      projectOperationRef.current = false;
+      setProjectBusy(false);
+    }
+  };
+
+  const downloadProject = (project: SketchProject) => {
+    try {
+      const current = project.id === activeProjectIdRef.current
+        ? { ...project, ...currentSnapshot() } : project;
+      const blob = new Blob([serializeProjectFile(current)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = projectFileName(current.name);
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success("Project file downloaded. Download recordings separately from Takes.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "This project could not be downloaded.");
+    }
+  };
+
+  const importLocalProject = async ({ name, snapshot }: ImportedProject) => {
+    if (projectOperationRef.current) throw new Error("Another project is opening. Please try again.");
+    projectOperationRef.current = true;
+    setProjectBusy(true);
+    try {
+      await saveActiveProject();
+      const project = await createProject(name, snapshot);
+      setProjects(await listProjects());
+      setTakeCounts((current) => ({ ...current, [project.id]: 0 }));
+      await openProject(project, false);
+      setWorkspaceView("studio");
+      setPanelTab("script");
+      setPanelOpen(Boolean(snapshot.script));
+      toast.success(`Opened a new local project: “${project.name}”.`);
+    } finally {
+      projectOperationRef.current = false;
+      setProjectBusy(false);
+    }
+  };
+
+  const duplicateLocalProject = async (project: SketchProject) => {
+    try {
+      const snapshot = project.id === activeProjectIdRef.current ? currentSnapshot() : project;
+      const copy = parseProjectFile(serializeProjectFile({ ...snapshot, name: `${project.name.slice(0, 73)} (copy)` }));
+      await importLocalProject(copy);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not duplicate this project.");
+    }
+  };
+
+  const createFromStarter = async (id: string) => {
+    const starter = STARTER_PROJECTS.find((item) => item.id === id);
+    if (!starter) return;
+    try {
+      await importLocalProject({ name: starter.name, snapshot: structuredClone(starter.snapshot) });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not open this example. Check browser storage and retry.");
     }
   };
 
@@ -793,7 +858,9 @@ export default function Studio() {
   const focusMode = countdown !== null || recState !== "idle";
 
   const handleOpenFromHome = async (project: SketchProject) => {
-    if (recState !== "idle") return;
+    if (recState !== "idle" || projectOperationRef.current) return;
+    projectOperationRef.current = true;
+    setProjectBusy(true);
     try {
       await openProject(project, false);
       setWorkspaceView("studio");
@@ -803,11 +870,16 @@ export default function Studio() {
       toast.error("That project could not be opened.");
       recoveryReadyRef.current = true;
       setRecoveryReady(true);
+    } finally {
+      projectOperationRef.current = false;
+      setProjectBusy(false);
     }
   };
 
   const handleShowProjects = async () => {
-    if (recState !== "idle") return;
+    if (recState !== "idle" || projectOperationRef.current) return;
+    projectOperationRef.current = true;
+    setProjectBusy(true);
     try {
       const saved = await saveActiveProject();
       pendingProjectRef.current = saved;
@@ -819,6 +891,9 @@ export default function Studio() {
     } catch (error) {
       console.error("Could not return to Creator Home", error);
       toast.error("Your project is still open, but it could not be saved first.");
+    } finally {
+      projectOperationRef.current = false;
+      setProjectBusy(false);
     }
   };
 
@@ -862,13 +937,13 @@ export default function Studio() {
         <span className="mx-1 hidden h-5 w-px bg-white/[0.08] sm:block" aria-hidden />
         {workspaceView === "studio" ? (
           <>
-            <button type="button" onClick={handleShowProjects} disabled={recState !== "idle"} aria-label="Back to projects" className="inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-2 text-xs font-semibold text-white/42 transition hover:bg-white/[0.08] hover:text-white sm:min-h-9 sm:min-w-0 sm:rounded-full sm:border-0 sm:bg-transparent disabled:opacity-30">
+            <button type="button" onClick={handleShowProjects} disabled={recState !== "idle" || projectBusy} aria-label="Back to projects" className="inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.04] px-2 text-xs font-semibold text-white/42 transition hover:bg-white/[0.08] hover:text-white sm:min-h-9 sm:min-w-0 sm:rounded-full sm:border-0 sm:bg-transparent disabled:opacity-30">
               <span aria-hidden>←</span> <span className="hidden sm:inline">Projects</span>
             </button>
             <ProjectSwitcher
               projects={projects}
               activeProjectId={activeProjectId}
-              disabled={!recoveryReady || recState !== "idle"}
+              disabled={!recoveryReady || recState !== "idle" || projectBusy}
               onSwitch={handleSwitchProject}
               onCreate={handleCreateProject}
               onRename={handleRenameProject}
@@ -880,6 +955,7 @@ export default function Studio() {
           <span className="text-xs font-semibold text-white/34">Projects</span>
         )}
         <div className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] sm:gap-2">
+          {workspaceView === "studio" && activeProject && <button type="button" aria-label="Download project" title="Download project" disabled={focusMode || projectBusy} onClick={() => downloadProject(activeProject)} className="inline-flex min-h-10 min-w-10 items-center justify-center gap-2 rounded-lg border border-white/15 px-2 text-xs font-medium text-[#b8aaff] hover:bg-white/5 disabled:opacity-40 sm:px-3"><svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4" /></svg><span className="hidden sm:inline">Download project</span></button>}
           <Link
             href="/account"
             className="hidden min-h-9 items-center rounded-full border border-white/[0.07] bg-white/[0.04] px-3 font-medium text-white/55 transition hover:bg-white/[0.08] hover:text-white lg:inline-flex"
@@ -888,14 +964,14 @@ export default function Studio() {
           </Link>
           <span
             className={`hidden min-h-9 items-center gap-1.5 rounded-full px-3 xl:flex ${
-              recoveryReady
+              recoveryReady && !autosaveFailed
                 ? "bg-emerald-400/[0.08] text-emerald-300"
                 : "bg-white/[0.04] text-white/35"
             }`}
-            title="Your active board, script, layout, and takes recover locally on this device"
+            title={recoveryFailed ? "Browser storage could not be opened. Allow site storage, then retry." : "Your active board, script, layout, and takes recover locally on this device"}
           >
             <span className="text-[10px]">◆</span>
-            {recoveryReady ? "Recovery Vault on" : "Opening vault…"}
+            {recoveryFailed ? "Local storage unavailable" : autosaveFailed ? "Project not saved" : recoveryReady ? "Recovery Vault on" : "Opening vault…"}
           </span>
           <button
             type="button"
@@ -913,16 +989,29 @@ export default function Studio() {
         </div>
       </header>
 
+      {autosaveFailed && <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-amber-300/25 bg-amber-950 px-4 py-3 text-sm text-amber-100">
+        <p className="min-w-0 flex-1">Your latest changes could not be saved. Keep this tab open, retry storage, or download a project copy.</p>
+        <button type="button" onClick={() => { void saveActiveProject().catch(() => toast.error("Storage is still unavailable. Download your project to keep these changes.")); }} className="min-h-10 rounded-lg border border-amber-200/40 px-3">Retry save</button>
+        {activeProject && <button type="button" onClick={() => downloadProject(activeProject)} className="min-h-10 rounded-lg bg-amber-200 px-3 font-semibold text-zinc-950">Download current project</button>}
+      </div>}
+
       {workspaceView === "home" ? (
         <CreatorHome
           projects={projects}
           activeProjectId={activeProjectId}
           takeCounts={takeCounts}
           recoveryReady={recoveryReady}
+          recoveryFailed={recoveryFailed}
+          busy={projectBusy}
+          onRetryRecovery={() => window.location.reload()}
           onOpen={handleOpenFromHome}
           onCreate={handleCreateProject}
           onOpenSync={handleOpenSync}
           onOpenSettings={() => setSettingsOpen(true)}
+          onImport={importLocalProject}
+          onDownload={downloadProject}
+          onDuplicate={duplicateLocalProject}
+          onStarter={createFromStarter}
         />
       ) : (
       <>

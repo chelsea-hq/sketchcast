@@ -20,6 +20,13 @@ describe("content security policy", () => {
     expect(policy).not.toContain("upgrade-insecure-requests");
   });
 
+  it("permits only the pinned Excalidraw font fallback alongside local fonts", () => {
+    const policy = buildContentSecurityPolicy({ nonce: "n", production: true });
+    const fonts = policy.split("; ").find((part) => part.startsWith("font-src "));
+    expect(fonts).toBe("font-src 'self' data: https://esm.sh/@excalidraw/excalidraw@0.18.1/dist/prod/fonts/");
+    expect(policy).not.toContain("connect-src 'self' https://esm.sh");
+  });
+
   it("derives and pins the Clerk frontend origin from a publishable key", () => {
     const encoded = Buffer.from("brief-fox-12.clerk.accounts.dev$").toString("base64");
     const origin = clerkFrontendOrigin(`pk_test_${encoded}`);

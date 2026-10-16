@@ -60,7 +60,7 @@ export default function AiPanel({
       onConceptUsed(trimmed);
       if (result.source === "offline") {
         toast.info(
-          "Built offline. Add an AI key under ⚙ Keys for smarter diagrams."
+          "Built from a template without an AI key. Add a key in Settings for AI diagrams."
         );
       } else {
         toast.success("Diagram ready. Add it to the board.");

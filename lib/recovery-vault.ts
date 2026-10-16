@@ -112,8 +112,11 @@ async function runRequest<T>(
     return await new Promise<T>((resolve, reject) => {
       const transaction = db.transaction(storeName, mode);
       const request = operation(transaction.objectStore(storeName));
-      request.onsuccess = () => resolve(request.result);
+      // A successful request can still be rolled back by a later abort.
+      // Only transaction completion proves that a write was committed.
+      transaction.oncomplete = () => resolve(request.result);
       request.onerror = () => reject(request.error ?? new Error("Recovery Vault request failed"));
+      transaction.onerror = () => reject(transaction.error ?? new Error("Recovery Vault transaction failed"));
       transaction.onabort = () => reject(transaction.error ?? new Error("Recovery Vault transaction aborted"));
     });
   } finally {

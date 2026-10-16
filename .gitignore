@@ -41,3 +41,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# Local browser QA artifacts (can contain recordings and browser state)
+/output/playwright/
+/output/verification-*/
+/.playwright-cli/
+
+# Generated from the installed Excalidraw package before dev/build
+/public/excalidraw/

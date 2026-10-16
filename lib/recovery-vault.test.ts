@@ -1,4 +1,4 @@
-import { IDBKeyRange, indexedDB } from "fake-indexeddb";
+import { IDBKeyRange, IDBObjectStore, indexedDB } from "fake-indexeddb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -32,8 +32,21 @@ describe("named project Recovery Vault", () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await deleteDatabase();
     vi.unstubAllGlobals();
+  });
+
+  it("rejects a write that aborts after its request succeeds", async () => {
+    await initializeProjectVault();
+    const originalPut = IDBObjectStore.prototype.put;
+    vi.spyOn(IDBObjectStore.prototype, "put").mockImplementation(function (this: IDBObjectStore, ...args) {
+      const request = originalPut.apply(this, args);
+      request.addEventListener("success", () => this.transaction.abort(), { once: true });
+      return request;
+    });
+    await expect(createProject("Must not claim saved")).rejects.toThrow();
+    expect((await listProjects()).map((project) => project.name)).not.toContain("Must not claim saved");
   });
 
   it("creates, renames, and restores the active project", async () => {

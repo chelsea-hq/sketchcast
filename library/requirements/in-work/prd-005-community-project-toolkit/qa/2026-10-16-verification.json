@@ -1,0 +1,450 @@
+{
+  "auditor": "quality-wasp-drone /root/quality_final",
+  "captured_utc": "2026-10-16T12:28:41.303275+00:00",
+  "claim": "Independent source/plan review plus imported matching local checks and two directly executed bounded probes. No hosted/device/release approval.",
+  "checkout": "/Users/chelsea/Projects/sketchcast",
+  "branch": "codex/open-source-readiness",
+  "base_head": "40c34666420bd6b7072fdae7b81bb93a8df9aec9",
+  "dirty": true,
+  "candidate": "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-community-20261016-q08_z0r4",
+  "source_manifest": "library/requirements/in-work/prd-005-community-project-toolkit/reports/source-fingerprints-2026-10-16.json",
+  "source_manifest_sha256": "a5439bf8b9bca723fde59f928cdbd9105e927d406a208510c252855ed6cea8a4",
+  "source_files": 124,
+  "all_root_and_candidate_hashes_match": true,
+  "plans": {
+    "prd005": {
+      "path": "library/requirements/in-work/prd-005-community-project-toolkit/prd-005-community-project-toolkit-index.md",
+      "sha256": "51ef13e7d6af16e0a33f7d0b0aef5cef6074f81af7f3ff9ed8152b19e0c97eb2"
+    },
+    "ird029": {
+      "path": "library/requirements/in-work/ird-029-project-preservation/ird-029-project-preservation-index.md",
+      "sha256": "59137c6fb24b1038fa5126985ae2cb09a67d8dcb68fba7edb3ef58203b738105"
+    },
+    "ird030": {
+      "path": "library/requirements/in-work/ird-030-bounded-braces-replacement/ird-030-bounded-braces-replacement-index.md",
+      "sha256": "b825710bdcd28f99808a49150b3d3052fbdc231dac234402ec1522eee943a1dd"
+    }
+  },
+  "security": {
+    "path": "library/requirements/in-work/prd-005-community-project-toolkit/reports/security-2026-10-16.md",
+    "sha256": "140610d743478951f80cd828be4858f1e3d9d72bf41d4d7bd48c1721241b16cb",
+    "disposition": "Cleared to proceed to Quality for scoped candidate",
+    "completion_timestamp": "UNKNOWN; file read and clearance confirmed before Quality review"
+  },
+  "reviewed_documentation_sha256": {
+    "README.md": "55629d0a969d98bf73aba242f8d712d4a637d4296396c4746ef8d4e480d625fc",
+    "CONTRIBUTING.md": "4ca5726bd16cf8f62663737d23077f5b63b9848731b3a92e0d86218237090f30",
+    "CHANGELOG.md": "12a377f0ad12846f14ba911d38558d1a2549d8cbfb739202bfef08495b419695",
+    "ROADMAP.md": "9c7d0f764eea6022f18fcb7368679e72081f46785b36d7597a192b63090eb989",
+    "SECURITY.md": "e040e506cddd591e90da3f705940059b6f88b3bdf2ea9424bc344735d646cb12",
+    "docs/PROJECT-FILES.md": "7577fcc0e149cd9c4bf507b24c27fb5651ebea035b22218d43b04cdab915fabe",
+    "docs/DEPENDENCY-REPLACEMENTS.md": "c493e4ee6dbf1b61f1ac0cdb876a9a8797687cf47dcb4f84dca14aaa5f2fc2f6",
+    "docs/RELEASE-CHECKLIST.md": "3ab783267dfb48e840b8a0ee158f978e5fd569015cc6baf9955a81c14e0e453d",
+    "docs/SECURITY-MODEL.md": "04c1bfd445bc7d79de3ce44c1dce42a7f4258dd2cbdce44a3debb90bc736601e",
+    "docs/SECURITY-ASSESSMENT-REMEDIATION.md": "bef6b29e63dd00ab7bcb1b26c0cdffa4a8ca98843c0d82fdfc33004a93fdb0fa",
+    "docs/CUSTOMIZATION.md": "2700d0fc8862c42a927d7c7ad5bbb381e41df488737b90e340758d99cee25d78",
+    ".gitignore": "a7243724966e1852327b9e3ffbb766f82de07d3d075cd4c125afb08c2fec8fa4"
+  },
+  "input_mode_policy": "Original source manifest uses exact-byte hashes of selected relative file paths. No reviewed source symlinks. Modes are recorded here; directory metadata is not covered. Candidate node_modules is a symlink to root frozen installation. Private env, notes/knowledge, .git, generated outputs and dependencies are excluded from source manifest.",
+  "source_modes": {
+    ".env.example": "0o644",
+    ".github/ISSUE_TEMPLATE/bug_report.yml": "0o644",
+    ".github/ISSUE_TEMPLATE/config.yml": "0o644",
+    ".github/ISSUE_TEMPLATE/feature_request.yml": "0o644",
+    ".github/dependabot.yml": "0o644",
+    ".github/pull_request_template.md": "0o644",
+    ".github/workflows/ci.yml": "0o644",
+    ".github/workflows/codeql.yml": "0o644",
+    ".nvmrc": "0o644",
+    "app/account/page.tsx": "0o644",
+    "app/api/account/route.ts": "0o644",
+    "app/api/billing/checkout/route.ts": "0o644",
+    "app/api/billing/portal/route.ts": "0o644",
+    "app/api/billing/webhook/route.ts": "0o644",
+    "app/api/copy/route.ts": "0o644",
+    "app/api/diagram/route.ts": "0o644",
+    "app/api/sync/route.ts": "0o644",
+    "app/api/transcribe/route.ts": "0o644",
+    "app/favicon.ico": "0o644",
+    "app/globals.css": "0o644",
+    "app/icon.svg": "0o644",
+    "app/layout.tsx": "0o644",
+    "app/page.tsx": "0o644",
+    "app/privacy/page.tsx": "0o644",
+    "app/sign-in/[[...sign-in]]/page.tsx": "0o644",
+    "app/sign-up/[[...sign-up]]/page.tsx": "0o644",
+    "app/studio/page.tsx": "0o644",
+    "app/terms/page.tsx": "0o644",
+    "components/AccountDashboard.tsx": "0o644",
+    "components/AuthShell.tsx": "0o644",
+    "components/Board.tsx": "0o644",
+    "components/ClerkBoundary.tsx": "0o644",
+    "components/CreatorHome.test.tsx": "0o644",
+    "components/CreatorHome.tsx": "0o644",
+    "components/LocalDialog.tsx": "0o644",
+    "components/ProjectImportDialog.tsx": "0o644",
+    "components/ProjectPreview.tsx": "0o644",
+    "components/ProjectSwitcher.tsx": "0o644",
+    "components/RecordBar.tsx": "0o644",
+    "components/RecordingPreflight.tsx": "0o644",
+    "components/SettingsModal.tsx": "0o644",
+    "components/SidePanel.tsx": "0o644",
+    "components/Studio-preservation.test.tsx": "0o644",
+    "components/Studio.tsx": "0o644",
+    "components/SubscribeButton.tsx": "0o644",
+    "components/SyncModal.tsx": "0o644",
+    "components/TakeEditor.tsx": "0o644",
+    "components/TakeReady.tsx": "0o644",
+    "components/Teleprompter.tsx": "0o644",
+    "components/WebcamBubble.tsx": "0o644",
+    "components/landing/Counters.tsx": "0o644",
+    "components/landing/Pricing.tsx": "0o644",
+    "components/landing/Reveal.tsx": "0o644",
+    "components/landing/ScrollHero.tsx": "0o644",
+    "components/panels/AiPanel.tsx": "0o644",
+    "components/panels/CopyPanel.tsx": "0o644",
+    "components/panels/ScriptPanel.tsx": "0o644",
+    "components/panels/TakesPanel.tsx": "0o644",
+    "components/panels/TemplatesPanel.tsx": "0o644",
+    "components/useCreatorCloud.ts": "0o644",
+    "components/useRecordingFrame.test.tsx": "0o644",
+    "components/useRecordingFrame.ts": "0o644",
+    "eslint.config.mjs": "0o644",
+    "lib/ai.test.ts": "0o644",
+    "lib/ai.ts": "0o644",
+    "lib/api-guard.test.ts": "0o644",
+    "lib/api-guard.ts": "0o644",
+    "lib/app-url.ts": "0o644",
+    "lib/audio-extract.ts": "0o644",
+    "lib/board-actions.ts": "0o644",
+    "lib/brand-kit.ts": "0o644",
+    "lib/canvas-api-ready.test.ts": "0o644",
+    "lib/canvas-api-ready.ts": "0o644",
+    "lib/content-security-policy.test.ts": "0o644",
+    "lib/content-security-policy.ts": "0o644",
+    "lib/creator-cloud-types.ts": "0o644",
+    "lib/creator-cloud.ts": "0o644",
+    "lib/creator-flow.test.ts": "0o644",
+    "lib/creator-flow.ts": "0o644",
+    "lib/creator-pricing.test.ts": "0o644",
+    "lib/creator-pricing.ts": "0o644",
+    "lib/dependency-contracts.test.ts": "0o644",
+    "lib/entitlements.test.ts": "0o644",
+    "lib/entitlements.ts": "0o644",
+    "lib/excalidraw-assets.test.ts": "0o644",
+    "lib/excalidraw-assets.ts": "0o644",
+    "lib/fallbacks.test.ts": "0o644",
+    "lib/fallbacks.ts": "0o644",
+    "lib/formats.ts": "0o644",
+    "lib/hosted-auth.ts": "0o644",
+    "lib/project-file.test.ts": "0o644",
+    "lib/project-file.ts": "0o644",
+    "lib/project-sync.test.ts": "0o644",
+    "lib/project-sync.ts": "0o644",
+    "lib/provider-environment.test.ts": "0o644",
+    "lib/provider-environment.ts": "0o644",
+    "lib/providers.ts": "0o644",
+    "lib/recorder-lifecycle.test.ts": "0o644",
+    "lib/recorder.ts": "0o644",
+    "lib/recording-support.test.ts": "0o644",
+    "lib/recovery-vault.test.ts": "0o644",
+    "lib/recovery-vault.ts": "0o644",
+    "lib/request-body.test.ts": "0o644",
+    "lib/request-body.ts": "0o644",
+    "lib/starter-projects.test.ts": "0o644",
+    "lib/starter-projects.ts": "0o644",
+    "lib/stripe.test.ts": "0o644",
+    "lib/stripe.ts": "0o644",
+    "lib/sync-capability.test.ts": "0o644",
+    "lib/sync-capability.ts": "0o644",
+    "lib/take-editor.ts": "0o644",
+    "lib/templates.ts": "0o644",
+    "lib/user-keys.test.ts": "0o644",
+    "lib/user-keys.ts": "0o644",
+    "next.config.ts": "0o644",
+    "package-lock.json": "0o644",
+    "package.json": "0o644",
+    "playwright.config.mts": "0o644",
+    "postcss.config.mjs": "0o644",
+    "proxy.ts": "0o644",
+    "scripts/prepare-board-assets.mjs": "0o644",
+    "tests/e2e/community.spec.ts": "0o644",
+    "tsconfig.json": "0o644",
+    "vitest.config.mts": "0o644"
+  },
+  "receipts": {
+    "browser.log": {
+      "path": "output/verification-2026-10-16/browser.log",
+      "sha256": "3c84ede137da0383ad956b8b174ce12d59a50856720961b72183756dad60e5ea"
+    },
+    "check-incomplete-candidate.log": {
+      "path": "output/verification-2026-10-16/check-incomplete-candidate.log",
+      "sha256": "f1ea84602cf68084323b4b6dd88d970304ebbe049bc6a56900ce7a60a96b2ef4"
+    },
+    "recording-probe.json": {
+      "path": "output/verification-2026-10-16/recording-probe.json",
+      "sha256": "3375fd8515ba5aa619d632b354831cff2df1e2552e8ac7f6f216e8635b559d4b"
+    },
+    "audit-production.json": {
+      "path": "output/verification-2026-10-16/audit-production.json",
+      "sha256": "eb465451a04761eaff4153fedff88f254f6ac986edbccc4b5c2aaae6124e878e"
+    },
+    "check-exit.txt": {
+      "path": "output/verification-2026-10-16/check-exit.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "gitleaks-source.log": {
+      "path": "output/verification-2026-10-16/gitleaks-source.log",
+      "sha256": "06fe13ba499e5c78fb09b26f22fe25eb7c1c8f9807329a7df2ebce21ec4f046d"
+    },
+    "candidate-input-hashes.json": {
+      "path": "output/verification-2026-10-16/candidate-input-hashes.json",
+      "sha256": "043aed9c84b14a22a53a5aabd8ede1e6b362d458c5afcb686cca1f5d40e1b07f"
+    },
+    "audit-all.json": {
+      "path": "output/verification-2026-10-16/audit-all.json",
+      "sha256": "eb465451a04761eaff4153fedff88f254f6ac986edbccc4b5c2aaae6124e878e"
+    },
+    "check.log": {
+      "path": "output/verification-2026-10-16/check.log",
+      "sha256": "357dd683dcca896be04ed5db2e9088e5d784b7a442f9e6b7c8aae4e7cdd84d5d"
+    },
+    "candidate-path.txt": {
+      "path": "output/verification-2026-10-16/candidate-path.txt",
+      "sha256": "564bf9699502fb56fe4393a8634ec4b04f21b95efa2d5ffc8a8f09d02f37c4cd"
+    },
+    "browser-exit.txt": {
+      "path": "output/verification-2026-10-16/browser-exit.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "gitleaks-source.json": {
+      "path": "output/verification-2026-10-16/gitleaks-source.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    }
+  },
+  "generated_artifacts": {
+    "output/playwright/community-2026-10-16/.last-run.json": {
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    "output/playwright/community-2026-10-16/community-mobile-preparati-ed39b-rd-behavior-search-and-sort-chromium/project-home-mobile.png": {
+      "sha256": "651db7fbc96d2822e5cab3241c50ff1ee81c418c9b972c6b158f59a353b867f8",
+      "bytes": 60906
+    },
+    "output/playwright/community-2026-10-16/community-starter-records--02cd3-take-that-can-be-downloaded-chromium/sketchcast-16x9-2026-10-16-12-18.mp4": {
+      "sha256": "e81789a0b2cc423c5e02b459ba8bd49a618d3b1efe1174e08eb071efa3b74b2f",
+      "bytes": 68836
+    },
+    "output/playwright/community-2026-10-16/community-starter-records--02cd3-take-that-can-be-downloaded-chromium/starter-studio.png": {
+      "sha256": "9ef753cbc27dcddc5385ee51177ebab489ec0fb3a49e56e65ebc904b23ca5725",
+      "bytes": 208272
+    },
+    "output/playwright/community-2026-10-16/community-starter-records--02cd3-take-that-can-be-downloaded-chromium/recorded-take.png": {
+      "sha256": "9bcec4bc96faf6b16f7407e6ee677d3b7aea8573c96d793b6583ed4b92473fa9",
+      "bytes": 142221
+    },
+    "output/playwright/community-2026-10-16/community-project-file-rou-0ce02-and-rejects-malformed-input-chromium/project-import.png": {
+      "sha256": "cb08c4c6d707fe3a088c17d66445cb478796a0f29deafa3015ac7d88bc1b8f09",
+      "bytes": 173071
+    },
+    "output/playwright/community-2026-10-16/community-starters-live-pr-58ccd-o-create-preserve-the-board-chromium/project-home-desktop.png": {
+      "sha256": "4a64acd3302c0dff4d29130ceef8e9e62dd1a79eaa7c21db4d7aa91ea427cb4d",
+      "bytes": 190435
+    }
+  },
+  "independent_probe": {
+    "start": "2026-10-16T12:23:08.800Z",
+    "end": "2026-10-16T12:23:11.278Z",
+    "browser": "156.0.8078.4",
+    "result": "PASS",
+    "assertions": [
+      "persistent failure alert",
+      "download exact unsaved script and editable board while storage rejects",
+      "repeated failed retry remains visible",
+      "successful retry clears alert",
+      "successful retry survives reload",
+      "no provider mutation"
+    ],
+    "remoteBlocked": [],
+    "apiMutations": [],
+    "output": "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-quality-20261016-M3xuXu"
+  },
+  "independent_dependency_reproduction": {
+    "utc": "2026-10-16T12:23:50.404Z",
+    "node": "v22.22.3",
+    "result": "PASS",
+    "cases": 7,
+    "rows": [
+      {
+        "method": "parse",
+        "input": "string",
+        "original": "accepted",
+        "fixed": "SyntaxError: Input depth (101), exceeds max depth (100)"
+      },
+      {
+        "method": "compile",
+        "input": "string",
+        "original": "RangeError: Maximum call stack size exceeded",
+        "fixed": "SyntaxError: Input depth (101), exceeds max depth (100)"
+      },
+      {
+        "method": "expand",
+        "input": "string",
+        "original": "RangeError: Maximum call stack size exceeded",
+        "fixed": "SyntaxError: Input depth (101), exceeds max depth (100)"
+      },
+      {
+        "method": "stringify",
+        "input": "string",
+        "original": "RangeError: Maximum call stack size exceeded",
+        "fixed": "SyntaxError: Input depth (101), exceeds max depth (100)"
+      },
+      {
+        "method": "compile",
+        "input": "AST",
+        "original": "RangeError: Maximum call stack size exceeded",
+        "fixed": "RangeError: AST depth (101), exceeds max depth (100)"
+      },
+      {
+        "method": "expand",
+        "input": "AST",
+        "original": "RangeError: Maximum call stack size exceeded",
+        "fixed": "RangeError: AST depth (101), exceeds max depth (100)"
+      },
+      {
+        "method": "stringify",
+        "input": "AST",
+        "original": "RangeError: Maximum call stack size exceeded",
+        "fixed": "RangeError: AST depth (101), exceeds max depth (100)"
+      }
+    ]
+  },
+  "probe_evidence_sha256": {
+    "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-quality-20261016-M3xuXu/result.json": "a2629b826e933879008d48c747f4f221ed4ae7ec9a86219a69ecf360589f5460",
+    "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-quality-20261016-M3xuXu/dependency-before-after.json": "ba5370bd25052627e884dfa889f7dadf94e8b830e801db4e4f3dacd8114ee714",
+    "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-quality-20261016-M3xuXu/failed-save-download.png": "855ae589456e20933c59331ebaeec75153f735d493649fb3629a55a4d67f44e5"
+  },
+  "checks": [
+    {
+      "id": "frozen-install",
+      "command": "npm ci --ignore-scripts --loglevel=error",
+      "cwd": "/Users/chelsea/Projects/sketchcast",
+      "result": "PASS reported by parent",
+      "exit": 0,
+      "observed": "718 packages; lifecycle scripts disabled",
+      "limit": "Application install raw terminal transcript not retained in output receipt directory; exact source/lock and installed consumer identity independently inspected"
+    },
+    {
+      "id": "full-check",
+      "command": "npm run check",
+      "cwd": "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-community-20261016-q08_z0r4",
+      "result": "PASS",
+      "exit": 0,
+      "observed": "lint, strict typecheck, 177 tests in 24 files, Next webpack production build",
+      "timestamps": "UNKNOWN exact UTC; check.log retains runner local start time"
+    },
+    {
+      "id": "browser",
+      "command": "SKETCHCAST_E2E_PRODUCTION=1 npm run test:e2e",
+      "cwd": "/var/folders/4m/zst472c563z_bxx2dz_mg1380000gn/T/sketchcast-community-20261016-q08_z0r4",
+      "result": "PASS",
+      "exit": 0,
+      "observed": "4 Chromium tests, 12.8s, no retries/skips; synthetic isolated contexts",
+      "timestamps": "UNKNOWN exact UTC"
+    },
+    {
+      "id": "audit-full",
+      "command": "npm audit --audit-level=high --json",
+      "cwd": "/Users/chelsea/Projects/sketchcast",
+      "result": "PASS",
+      "exit": "0 parent-observed",
+      "observed": {
+        "info": 0,
+        "low": 4,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 4
+      }
+    },
+    {
+      "id": "audit-production",
+      "command": "npm audit --omit=dev --audit-level=high --json",
+      "cwd": "/Users/chelsea/Projects/sketchcast",
+      "result": "PASS",
+      "exit": "0 parent-observed",
+      "observed": {
+        "info": 0,
+        "low": 4,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 4
+      }
+    },
+    {
+      "id": "earlier-incomplete-candidate",
+      "result": "FAIL / superseded",
+      "observed": "Original temporary source copy lacked tsconfig; next generated one without aliases. Failure retained in check-incomplete-candidate.log; not counted as pass"
+    },
+    {
+      "id": "independent-storage-probe",
+      "command": "node (inline stdin Playwright probe)",
+      "cwd": "/Users/chelsea/Projects/sketchcast",
+      "result": "PASS",
+      "exit": 0,
+      "limit": "Inline probe source not retained as a standalone runner; exact assertions and times recorded in independent_probe"
+    },
+    {
+      "id": "independent-original-vs-fixed-probe",
+      "command": "node (inline stdin public-API comparison)",
+      "cwd": "/Users/chelsea/Projects/sketchcast",
+      "result": "PASS",
+      "exit": 0,
+      "observed": "7 original-vs-fixed checks; original parse accepted, 6 walkers overflowed; fixed rejects all with controlled depth errors"
+    },
+    {
+      "id": "remote-ci-camera-mic-other-browsers-hosted-services",
+      "result": "NOT_RUN",
+      "observed": "Not claimed by scoped local review"
+    }
+  ],
+  "versions": {
+    "node": "22.22.3",
+    "npm": "10.9.8",
+    "next": "16.3.8",
+    "vitest": "4.1.11",
+    "playwright": "1.64.1",
+    "chromium": "156.0.8078.4"
+  },
+  "provenance_limit": "Local packet is unsigned. Fork signature/provenance verification is attributed to Dependency and Security reviewers; this Quality reviewer did not independently repeat cryptographic verification.",
+  "resolved_finding": {
+    "id": "QA005-01",
+    "severity": "Warning",
+    "path": "CONTRIBUTING.md:78",
+    "before": "npm run check and the current CI workflow do not run this separate browser suite.",
+    "after": "`npm run check` does not run the separate browser suite. CI runs it after the\nproduction build with `SKETCHCAST_E2E_PRODUCTION=1`.",
+    "verified_against": ".github/workflows/ci.yml:49-52",
+    "status": "Corrected by parent and verified during Quality; actual variable is SKETCHCAST_E2E_PRODUCTION"
+  },
+  "open_findings": {
+    "critical": 0,
+    "warning": 0,
+    "suggestion": 0
+  },
+  "downstream_gate": "Repository Health remains parent-owned and follows this review.",
+  "independent_probe_durable_copies": {
+    "output/verification-2026-10-16/independent-quality/result.json": {
+      "sha256": "a2629b826e933879008d48c747f4f221ed4ae7ec9a86219a69ecf360589f5460",
+      "matches_original": true
+    },
+    "output/verification-2026-10-16/independent-quality/dependency-before-after.json": {
+      "sha256": "ba5370bd25052627e884dfa889f7dadf94e8b830e801db4e4f3dacd8114ee714",
+      "matches_original": true
+    },
+    "output/verification-2026-10-16/independent-quality/failed-save-download.png": {
+      "sha256": "855ae589456e20933c59331ebaeec75153f735d493649fb3629a55a4d67f44e5",
+      "matches_original": true
+    }
+  }
+}

@@ -52,6 +52,7 @@ export class SessionRecorder {
   private ctx: CanvasRenderingContext2D;
   private raf = 0;
   private recorder: MediaRecorder | null = null;
+  private capture: MediaStream | null = null;
   private chunks: Blob[] = [];
   private startedAt = 0;
   private pausedTotal = 0;
@@ -73,37 +74,64 @@ export class SessionRecorder {
   }
 
   start(): void {
+    if (this.capture) throw new Error("Recording is already in progress");
     const mimeType = SessionRecorder.pickMimeType();
     if (!mimeType) throw new Error("This browser cannot record video");
 
     const stream = this.canvas.captureStream(30);
-    const audioTrack = this.opts.micStream?.getAudioTracks()[0];
-    if (audioTrack) stream.addTrack(audioTrack);
+    this.capture = stream;
+    try {
+      const audioTrack = this.opts.micStream?.getAudioTracks()[0];
+      if (audioTrack) stream.addTrack(audioTrack);
 
-    this.recorder = new MediaRecorder(stream, {
-      mimeType,
-      videoBitsPerSecond: 8_000_000,
-    });
-    this.chunks = [];
-    this.recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) this.chunks.push(e.data);
-    };
-    this.recorder.onstop = () => {
-      cancelAnimationFrame(this.raf);
-      const blob = new Blob(this.chunks, { type: mimeType });
-      this.opts.onStop({
-        blob,
+      this.recorder = new MediaRecorder(stream, {
         mimeType,
-        extension: mimeType.startsWith("video/mp4") ? "mp4" : "webm",
-        durationMs: performance.now() - this.startedAt - this.pausedTotal,
-        format: this.opts.format,
+        videoBitsPerSecond: 8_000_000,
       });
-    };
+      this.chunks = [];
+      this.recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) this.chunks.push(e.data);
+      };
+      this.recorder.onstop = () => {
+        this.releaseCapture();
+        const blob = new Blob(this.chunks, { type: mimeType });
+        this.chunks = [];
+        this.recorder = null;
+        this.opts.onStop({
+          blob,
+          mimeType,
+          extension: mimeType.startsWith("video/mp4") ? "mp4" : "webm",
+          durationMs: performance.now() - this.startedAt - this.pausedTotal,
+          format: this.opts.format,
+        });
+      };
 
-    this.startedAt = performance.now();
-    this.pausedTotal = 0;
-    this.recorder.start(1000);
-    this.draw();
+      this.startedAt = performance.now();
+      this.pausedTotal = 0;
+      this.recorder.start(1000);
+      this.draw();
+    } catch (error) {
+      // Construction, start, or the first draw can fail after capture begins.
+      // Discard that attempt without delivering a partial take to the studio.
+      if (this.recorder) {
+        this.recorder.ondataavailable = null;
+        this.recorder.onstop = null;
+        if (this.recorder.state !== "inactive") this.recorder.stop();
+        this.recorder = null;
+      }
+      this.releaseCapture();
+      this.chunks = [];
+      throw error;
+    }
+  }
+
+  private releaseCapture(): void {
+    cancelAnimationFrame(this.raf);
+    this.raf = 0;
+    // Canvas video tracks belong to this recorder. Audio belongs to the live
+    // camera/mic session and must remain available for subsequent takes.
+    this.capture?.getVideoTracks().forEach((track) => track.stop());
+    this.capture = null;
   }
 
   pause(): void {

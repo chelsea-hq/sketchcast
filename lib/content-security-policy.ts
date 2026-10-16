@@ -4,7 +4,10 @@ const STATIC_DIRECTIVES = [
   "img-src 'self' data: blob: https://img.clerk.com",
   "media-src 'self' blob:",
   "worker-src 'self' blob:",
-  "font-src 'self' data:",
+  // Excalidraw includes a CDN fallback in every FontFace source list, even
+  // with local assets configured. Chromium checks that URL when parsing it.
+  // Allow only this package version's font directory, not general CDN access.
+  "font-src 'self' data: https://esm.sh/@excalidraw/excalidraw@0.18.1/dist/prod/fonts/",
   "frame-src 'self' https://challenges.cloudflare.com",
   "object-src 'none'",
   "base-uri 'self'",

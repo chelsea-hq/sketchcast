@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-16",
+  "purpose": "Final documentation after administrative gate-status updates; application source manifest remains unchanged",
+  "sha256": {
+    "CHANGELOG.md": "12a377f0ad12846f14ba911d38558d1a2549d8cbfb739202bfef08495b419695",
+    "CONTRIBUTING.md": "4ca5726bd16cf8f62663737d23077f5b63b9848731b3a92e0d86218237090f30",
+    "README.md": "55629d0a969d98bf73aba242f8d712d4a637d4296396c4746ef8d4e480d625fc",
+    "ROADMAP.md": "89cd09aaf9be94fe5652fffb24a1cf4356f53b99386c6f2bab2571df1ef885d8",
+    "SECURITY.md": "e040e506cddd591e90da3f705940059b6f88b3bdf2ea9424bc344735d646cb12",
+    "docs/CUSTOMIZATION.md": "2700d0fc8862c42a927d7c7ad5bbb381e41df488737b90e340758d99cee25d78",
+    "docs/DEPENDENCY-REPLACEMENTS.md": "bd022d7fbcb6e3f2fe47ab8faf05caaf3abb92af97e2598d0e1305a3504d5877",
+    "docs/PROJECT-FILES.md": "7577fcc0e149cd9c4bf507b24c27fb5651ebea035b22218d43b04cdab915fabe",
+    "docs/RELEASE-CHECKLIST.md": "1197716bd184384c61ad24cb06e573dd478e0b002ee7fd78b62878156902416d",
+    "docs/SECURITY-ASSESSMENT-REMEDIATION.md": "bef6b29e63dd00ab7bcb1b26c0cdffa4a8ca98843c0d82fdfc33004a93fdb0fa",
+    "docs/SECURITY-MODEL.md": "04c1bfd445bc7d79de3ce44c1dce42a7f4258dd2cbdce44a3debb90bc736601e",
+    "library/requirements/in-work/ird-029-project-preservation/ird-029-project-preservation-index.md": "6bce6d37c2973bdc4847a6a6ac1d8d913c3fec5815528ed50127a42e29e64ab3",
+    "library/requirements/in-work/ird-029-project-preservation/qa/2026-10-16-qa-report.md": "99d9c40480f2d28d993045634c96a73194df9fba3d02e084cf4f24a1a4a12f53",
+    "library/requirements/in-work/ird-030-bounded-braces-replacement/ird-030-bounded-braces-replacement-index.md": "d036fea2c602fed5183bb4139878ecfc3cbb1ed60a6a1a9c715f59293959f9c0",
+    "library/requirements/in-work/ird-030-bounded-braces-replacement/qa/2026-10-16-qa-report.md": "553a6558dcf6fb4d3b18ab29d49f9febc46617c24b56aab65006e3362c37aa33",
+    "library/requirements/in-work/ird-030-bounded-braces-replacement/reports/dependency-replacement-2026-10-16.md": "3b62bc74c82e828603fd5856be638bb371b81a1fee226f348e03e540defc5947",
+    "library/requirements/in-work/prd-005-community-project-toolkit/prd-005-community-project-toolkit-index.md": "c21b642e313206dbdca0fe19dd936a1a715a7e687b1ef1acf1685797d9d452fa",
+    "library/requirements/in-work/prd-005-community-project-toolkit/qa/2026-10-16-qa-report.md": "410bfe11c9dac41acb4d28925f06ed8e60bc5be50afc66ddf776c39fb1918de8",
+    "library/requirements/in-work/prd-005-community-project-toolkit/reports/dependencies-2026-10-15.md": "166c1f071fc736edeca441196b4ca31492aa179d0b325fe69e1832f2fd8bbcc4",
+    "library/requirements/in-work/prd-005-community-project-toolkit/reports/handoff-2026-10-15.md": "58b3e7102ff2979e131f13dccd7b47fa2e780ecbca5d646766bf0f5a2165cc07",
+    "library/requirements/in-work/prd-005-community-project-toolkit/reports/handoff-2026-10-16.md": "363ec9bbcf1ed46a5a70b6ae2e0751b904b5465deb93bd9decf8a6b11a11d914",
+    "library/requirements/in-work/prd-005-community-project-toolkit/reports/repository-health-2026-10-16.md": "7291ae8f102eeef355f2560bf9e9373f041ef274334f01b428b06e52fac174bd",
+    "library/requirements/in-work/prd-005-community-project-toolkit/reports/security-2026-10-15.md": "2d025d1c3df0aab6843164d182d7086f574b6f9803d25a562a9e7bf275891888",
+    "library/requirements/in-work/prd-005-community-project-toolkit/reports/security-2026-10-16.md": "140610d743478951f80cd828be4858f1e3d9d72bf41d4d7bd48c1721241b16cb"
+  }
+}

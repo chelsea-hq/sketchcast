@@ -34,7 +34,7 @@ Every customized fork should pass:
 
 ```bash
 npm run check
-npm run audit:release
+npm run audit:all
 ```
 
 Then test the landing page, studio load, board editing, key settings, offline AI
